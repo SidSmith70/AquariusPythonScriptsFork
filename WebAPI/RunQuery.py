@@ -35,21 +35,21 @@ if (response.status_code==200):
     queryDef = response.json()
         
 
-# STEP 2: set search value
-queryDef['queryFields'][0]['searchValue']='test'
-#queryDef['queryFields'][5]['operatorString']='ne'
+    # STEP 2: set search value
+    queryDef['queryFields'][0]['searchValue']='test'
+    #queryDef['queryFields'][5]['operatorString']='ne'
 
-# STEP 3: run the query
-response = aqApi.RunQuery(json.dumps(queryDef).replace('"',"'"))
-if (response.status_code==200):
-    results = response.json()
+    # STEP 3: run the query
+    response = aqApi.RunQuery(json.dumps(queryDef).replace('"',"'"))
+    if (response.status_code==200):
+        results = response.json()
 
-    # STEP 4: save the results
-    print(results)
+        # STEP 4: save the results
+        print(results)
 
-else:
-    print(response.status_code)
-    print(response.text)
-    print(response.reason)
+    else:
+        print(response.status_code)
+        print(response.text)
+        print(response.reason)
 
- 
+    
