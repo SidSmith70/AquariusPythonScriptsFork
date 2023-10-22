@@ -1,7 +1,7 @@
 
 ########################################################################################################################
 # 
-# Purpose: This script contains a class for interacting with the Aquarius WEB API.
+# Purpose: This script contains classes for interacting with the Aquarius WEB API.
 #
 ########################################################################################################################
 
