@@ -5,8 +5,18 @@
 #
 ########################################################################################################################
 
-#******************* CONFIGURATION  ********************************************
+import os
+import time
+from datetime import datetime
+import utils.AquariusImaging as AquariusImaging
+import tempfile
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from pyzbar.pyzbar import decode
+import cv2
 from dotenv import load_dotenv
+
+#******************* CONFIGURATION  ********************************************
 load_dotenv()
 username = os.environ.get("USERNAME")
 password = os.environ.get("PASSWORD")
@@ -26,16 +36,6 @@ appendExistingDocuments = False
 filter = ""  #"Status = ACTIVE"
 
 #************************ CONFIGURATION ***********************************************************
-
-import os
-import time
-from datetime import datetime
-import utils.AquariusImaging as AquariusImaging
-import tempfile
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from pyzbar.pyzbar import decode
-import cv2
 
 
 
