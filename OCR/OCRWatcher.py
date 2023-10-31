@@ -16,7 +16,7 @@ from PIL import Image
 #******************* CONFIGURATION  ********************************************
 
 
-folderToWatch = 'c:\\temp\\cfgtest\\'
+folderToWatch = 'D:\\AQImages1\\'
 
 
 #************************ CONFIGURATION ***********************************************************
@@ -70,13 +70,17 @@ class ImageFileHandler(FileSystemEventHandler):
 handler = ImageFileHandler(folderToWatch)
 
 #to process all files in the folder:
-# for root, _, files in os.walk(folderToWatch):
-#         for filename in files:
-#             # print the size of the file
-#             if filename.lower().endswith('.tif'):
-#                 file_path = os.path.join(root, filename)
+for root, _, files in os.walk(folderToWatch):
+        for filename in files:
+            
+            if filename.lower().endswith('.tif') or filename.lower().endswith('.jpg'):
+                text_file_path = os.path.join(root, os.path.splitext(filename)[0] + '.txt')
+                #print(text_file_path)
+                # Check if the file exists
+                if not os.path.exists(text_file_path):
+
+                    handler.ProcessOCR(os.path.join(root,filename))
                 
-#                 handler.ProcessFile(file_path)
 
 
 # Create an observer to watch the folder for file system events
