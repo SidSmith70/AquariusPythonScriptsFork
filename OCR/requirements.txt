@@ -1,0 +1,5 @@
+pysolr==3.9.0
+pytesseract==0.3.10
+pywin32==306
+watchdog==3.0.0
+setuptools
