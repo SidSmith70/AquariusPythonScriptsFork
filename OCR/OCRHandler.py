@@ -1,31 +1,20 @@
 
-########################################################################################################################
-# 
-# Purpose: This script watches for new tif, jpg files and runs tesseract OCR on them.
-#
-########################################################################################################################
-
-import os
-import time
-from datetime import datetime
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import pytesseract
 from PIL import Image
+from datetime import datetime
 
-#******************* CONFIGURATION  ********************************************
+import os
+import time
 
-
-folderToWatch = 'D:\\AQImages1\\'
-
-
-#************************ CONFIGURATION ***********************************************************
 
 # This class handles the file system events for the folder being watched
 class ImageFileHandler(FileSystemEventHandler):
 
     def __init__(self, folder_to_watch ):
         super().__init__()
+        self.folder_to_watch = folder_to_watch
+        self.running = True
 
     def on_created(self, event):
         try:
@@ -65,32 +54,27 @@ class ImageFileHandler(FileSystemEventHandler):
         except Exception as ex:
             print(f'{datetime.now()} Error: {ex.args[0]}')
 
-    
-# Create a MyHandler instance to handle the event
-handler = ImageFileHandler(folderToWatch)
+    def ProcessALL(self):
+        try:
+            # To process all files in the folder:
+            folder_to_process = self.folder_to_watch  # Assuming you pass the folder path when creating the handler instance
 
-#to process all files in the folder:
-for root, _, files in os.walk(folderToWatch):
-        for filename in files:
+            for root, _, files in os.walk(folder_to_process):
+                    for filename in files:
+                        
+                        if filename.lower().endswith('.tif') or filename.lower().endswith('.jpg'):
+                            text_file_path = os.path.join(root, os.path.splitext(filename)[0] + '.txt')
+                            #print(text_file_path)
+                            # Check if the text file already exists.
+                            if not self.running:
+                                break
+                            elif not os.path.exists(text_file_path):
+
+                                self.ProcessOCR(os.path.join(root,filename))
+
+        except Exception as ex:
+            print(f'{datetime.now()} Error: {str(ex)}')
             
-            if filename.lower().endswith('.tif') or filename.lower().endswith('.jpg'):
-                text_file_path = os.path.join(root, os.path.splitext(filename)[0] + '.txt')
-                #print(text_file_path)
-                # Check if the file exists
-                if not os.path.exists(text_file_path):
 
-                    handler.ProcessOCR(os.path.join(root,filename))
-                
-
-
-# Create an observer to watch the folder for file system events
-observer = Observer()
-observer.schedule(handler, folderToWatch, recursive=True)
-observer.start()
-
-try:
-    while True:
-        time.sleep(5)
-except KeyboardInterrupt:
-    observer.stop()
-observer.join()
+    def stop(self):
+        self.running = False
