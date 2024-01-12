@@ -49,7 +49,7 @@ class TextFileHandler(FileSystemEventHandler,):
             print(f"{datetime.now()} Processing TEXT  {file_path}")
             
             #for text files, read all the text into a string
-            with open(file_path, 'r') as f:
+            with open(file_path, 'r') as f:   #,encoding="utf8"
                 full_text = f.read()
 
                 #send the text to solr
