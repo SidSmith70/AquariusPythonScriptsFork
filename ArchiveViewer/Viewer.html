@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display CSV Data</title>
+    <script src="list.js"></script>
+
+</head>
+
+<body>
+    <h2>CSV Data</h2>
+
+    <div id="csvDisplay">
+
+        <input class="search" placeholder="Search" />
+
+        <!-- embedded javascript to load data -->
+        <script lang="javascript">
+
+            //optiosn for list.js
+            var options = {
+                valueNames: []
+            };
+
+            window.addEventListener('DOMContentLoaded', (event) => {
+
+                displayData(parseCSV(data));
+
+            });
+
+            function parseCSV(csvText) {
+                const lines = csvText.trim().split("\n");
+                const result = [];
+                //split using the tab character
+                const headers = lines[0].split("\t");
+
+                for (let i = 1; i < lines.length; i++) {
+                    const obj = {};
+                    const currentline = lines[i].split("\t");
+
+                    for (let j = 0; j < headers.length; j++) {
+                        obj[headers[j]] = currentline[j];
+                    }
+                    result.push(obj);
+                }
+                return result;
+            }
+
+            function displayData(data) {
+                const displayDiv = document.getElementById('csvDisplay');
+                let table = '<table border="1">';
+                table += '<tbody class="list">';  //class="list" is added to the tbody tag for the list.js to work.
+                table += '<tr>';
+
+                // Create table headers
+                for (let header in data[0]) {
+                    table += `<th>${header}</th>`;
+                    options.valueNames.push(header);
+                }
+                table += '</tr>';
+
+                // Add rows
+                data.forEach(function (row) {
+                    table += '<tr>';
+                    for (let cell in row) {
+                        table += `<td class="${cell}">${row[cell]}</td>`;   //class="${cell}" is added to the td tag for the list.js to work.
+                    }
+                    table += '</tr>';
+                });
+                table += '</tbody>'
+                table += '</table>';
+
+                displayDiv.innerHTML += table;
+
+                //initialize list.js
+                var userList = new List('csvDisplay', options);
+            }
+
+            const data =
+                `doc_id	Document Name	Created	Created By	Modified	Modified By	Pages	Employee Number	Employee Name	Social Security	Hired Date	Department	
+ZALV2XYO	Employee 	3/30/2023 11:19:00 PM	sid@aquarius	3/30/2023 11:19:00 PM	sid@aquarius	3		Nelson				
+WYVNHL0M	Employee 123456789	9/22/2023 1:02:00 PM	dale@aquarius	9/22/2023 1:02:00 PM	dale@aquarius	4	123456789	JOHN DO	813299574	9/22/2023 12:00:00 AM	Sales	
+XB15NV9Y	Employee 87878	1/14/2024 4:12:00 PM	admin	1/14/2024 4:12:00 PM	admin	8	87878	test	123456789	1/1/2024 12:00:00 AM	Sales	
+W2EDSEAS	Employee test	1/31/2024 3:57:00 PM	sid@aquarius	1/31/2024 3:57:00 PM	sid@aquarius	1	test	test	123456789	1/31/2024 12:00:00 AM	Sales	
+X2EDSQPI	Employee 12	1/31/2024 3:59:00 PM	sid@aquarius	1/31/2024 3:59:00 PM	sid@aquarius	2	12	test	123456789	1/31/2024 12:00:00 AM	Sales	
+X2EFE1RS	Employee test	1/31/2024 11:25:00 PM	sid@aquarius	1/31/2024 11:25:00 PM	sid@aquarius	3	test	test	123456879	1/31/2024 12:00:00 AM	Sales	
+X2EFE1RT	Employee test	1/31/2024 11:25:00 PM	sid@aquarius	1/31/2024 11:25:00 PM	sid@aquarius	4	test	test	123456789	1/31/2024 12:00:00 AM	Sales	
+W2EFE8KN	Employee test	1/31/2024 11:26:00 PM	sid@aquarius	1/31/2024 11:27:00 PM	sid@aquarius	1	test	test	123654987	1/31/2024 12:00:00 AM	Sales	
+X2EFE1RV	Employee test2	1/31/2024 11:29:00 PM	sid@aquarius	1/31/2024 11:29:00 PM	sid@aquarius	2	test2	test2	321654987	1/31/2024 12:00:00 AM	Sales	
+X2EFE1RW	Employee test3	1/31/2024 11:29:00 PM	sid@aquarius	1/31/2024 11:29:00 PM	sid@aquarius	3	test3	test3	321654987	1/31/2024 12:00:00 AM	Sales	
+Z2F16UKY	Employee 	2/4/2024 2:01:00 PM	admin	2/4/2024 2:01:00 PM	admin	0`
+
+        </script>
+
+</body>
+
+</html>
