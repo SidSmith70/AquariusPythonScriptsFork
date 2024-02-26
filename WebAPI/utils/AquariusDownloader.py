@@ -41,7 +41,7 @@ class CrossRefDataWriter:
                 last_line = f.readlines()[-1]
                 self._last_doc_id = last_line.split('\t')[0]
                 self._last_page = int(last_line.split('\t')[1])
-                
+
     @property
     def last_doc_id(self):        
         return self._last_doc_id
@@ -75,26 +75,30 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
         #establish a cross reference file
         XrefDataWriter=CrossRefDataWriter(inputFile,uniqueIdentifier)
 
-        caughtUp = False
+        # initialize the variable that determines if we are caught up to the last doc_id
+        caughtUp = (XrefDataWriter.last_doc_id == '')
 
         #begin document loop
         for resultLine in queryResultsData:
         
             docID = resultLine.split('\t')[0]
-
             
             if (docID != 'doc_id'):
                 
-                #if there was a last_doc_id, skip until we get to that docid.
-                if ((XrefDataWriter.last_doc_id != '' and docID != XrefDataWriter.last_doc_id and caughtUp == False)):
-                    print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
+                #reset the variables
+                pageCounter= 1
+                tiff_files_li=[]
 
-                    continue
-                elif (caughtUp == False and docID == XrefDataWriter.last_doc_id):
-                    print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
-                    caughtUp = True
-                else:
+                # check if we are caught up to the last doc_id
+                if (caughtUp):
                     print(f'{datetime.now()} Downloading {docID}')
+                elif (docID != XrefDataWriter.last_doc_id ):
+                    print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
+                    continue
+                else:
+                    print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
+                    pageCounter = XrefDataWriter.last_page + 1
+                    caughtUp = True
 
                 #get the document page count
                 docresponse = webApi.GetDocument(docID)
@@ -103,14 +107,6 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
                 if (docresponse.status_code==200):
                     doc = docresponse.json()
             
-                    #reset the variables
-                    pageCounter= 1
-                    tiff_files_li=[]
-
-                    # if we just caught up, get the page from the xdefdatawriter
-                    if ((XrefDataWriter.last_doc_id != '' and docID == XrefDataWriter.last_doc_id and caughtUp)):
-                        pageCounter = XrefDataWriter.last_page + 1
-
                     #begin page loop
                     while (pageCounter <= doc["pageCount"]) and ( doc["pageCount"] > 0):
 
@@ -171,7 +167,8 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
                         for singlepageimage in tiff_files_li:
                             XrefDataWriter.Write(docID,pageCounter,singlepageimage)
                             #increment the page counter
-                            pageCounter += 1   
+                            pageCounter += 1
+
                 else:
                     # error downloading document
                     print(f'{datetime.now()} Error downloading document {docID}. Error code: {docresponse.status_code}')
