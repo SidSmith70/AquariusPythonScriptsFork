@@ -52,7 +52,8 @@ class CrossRefDataWriter:
     
     def Write(self,docID,pageCounter,fileName):
         self.imageXRefFile.write(bytes(docID + '\t' + str(pageCounter) + '\t' + fileName + '\n','UTF-8'))
-                
+        self.imageXRefFile.flush()
+
     def Close(self):
         self.imageXRefFile.close()
 
