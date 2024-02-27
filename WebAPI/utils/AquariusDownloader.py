@@ -93,13 +93,13 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
                 # check if we are caught up to the last doc_id
                 if (caughtUp):
                     print(f'{datetime.now()} Downloading {docID}')
-                elif (docID != XrefDataWriter.last_doc_id ):
-                    print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
-                    continue
-                else:
+                elif (docID == XrefDataWriter.last_doc_id ):
                     print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
                     pageCounter = XrefDataWriter.last_page + 1
                     caughtUp = True
+                else:
+                    print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
+                    continue
 
                 #get the document page count
                 docresponse = webApi.GetDocument(docID)
