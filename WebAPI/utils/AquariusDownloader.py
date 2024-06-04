@@ -79,6 +79,12 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
         # initialize the variable that determines if we are caught up to the last doc_id
         caughtUp = (XrefDataWriter.last_doc_id == '')
 
+        # Count the total number of lines in the file
+        totalDocuments = sum(1 for line in queryResultsData)
+        queryResultsData.seek(0)  # Reset the file pointer to the beginning
+
+        docCounter = 0
+
         #begin document loop
         for resultLine in queryResultsData:
         
@@ -88,11 +94,12 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
                 
                 #reset the variables
                 pageCounter= 1
+                docCounter += 1
                 tiff_files_li=[]
 
                 # check if we are caught up to the last doc_id
                 if (caughtUp):
-                    print(f'{datetime.now()} Downloading {docID}')
+                    print(f'{datetime.now()} Downloading {docID} {docCounter}/{totalDocuments} {docCounter/totalDocuments*100:.0f}% ')
                 elif (docID == XrefDataWriter.last_doc_id ):
                     print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
                     pageCounter = XrefDataWriter.last_page + 1
