@@ -79,20 +79,38 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
         # initialize the variable that determines if we are caught up to the last doc_id
         caughtUp = (XrefDataWriter.last_doc_id == '')
 
+        # Count the total number of lines in the file
+        totalDocuments = sum(1 for line in queryResultsData)
+
+        queryResultsData.seek(0)  # Reset the file pointer to the beginning
+
+        # Initialize the time estimator
+        time_estimator = None
+
+        docCounter = 0
+        
         #begin document loop
         for resultLine in queryResultsData:
         
             docID = resultLine.split('\t')[0]
-            
+         
             if (docID != 'doc_id'):
                 
                 #reset the variables
                 pageCounter= 1
+                docCounter += 1
                 tiff_files_li=[]
 
                 # check if we are caught up to the last doc_id
                 if (caughtUp):
-                    print(f'{datetime.now()} Downloading {docID}')
+                    if time_estimator is None:
+                        
+                        time_estimator = TimeEstimator(totalDocuments - docCounter)
+
+                    time_estimator.increment_documents_downloaded()
+                    estimated_remaining_time = time_estimator.get_estimated_remaining_time()
+
+                    print(f'{datetime.now()} Downloading {docID} {docCounter}/{totalDocuments} {docCounter/totalDocuments*100:.0f}% ({estimated_remaining_time/60:.0f} minutes remaining)')
                 elif (docID == XrefDataWriter.last_doc_id ):
                     print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
                     pageCounter = XrefDataWriter.last_page + 1
@@ -192,3 +210,20 @@ def GetMergedData(inputFile):
     merged_data = pd.merge(indexes_df,images_df,left_on='doc_id',right_on='doc_id',sort=True)
         
     return merged_data
+
+import time
+class TimeEstimator:
+    def __init__(self, total_documents):
+        self.start_time = time.time()
+        self.total_documents = total_documents
+        self.documents_downloaded = 0
+
+    def increment_documents_downloaded(self):
+        self.documents_downloaded += 1
+
+    def get_estimated_remaining_time(self):
+        elapsed_time = time.time() - self.start_time
+        average_time_per_document = elapsed_time / self.documents_downloaded if self.documents_downloaded else 0
+        remaining_documents = self.total_documents - self.documents_downloaded
+        estimated_remaining_time = average_time_per_document * remaining_documents
+        return estimated_remaining_time
