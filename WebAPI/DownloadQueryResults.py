@@ -10,7 +10,6 @@ import utils.AquariusDownloader as AquariusDownloader
 from datetime import datetime
 import sys
 
-
 #************************ CONFIGURATION ***********************************************************
 from dotenv import load_dotenv
 import os
@@ -33,4 +32,7 @@ if (len(sys.argv) > 1):
 uniqueID = datetime.now().strftime('%Y%m%d%H%M%S')
 
 #download the images
-AquariusDownloader.DownloadImagesFromQueryResults(inputFile,username,password,server,multipage,uniqueID,type)
+try:
+    AquariusDownloader.DownloadImagesFromQueryResults(inputFile,username,password,server,multipage,uniqueID,type)
+except Exception as e:
+    print(f"An exception occurred: {str(e)}")
