@@ -85,16 +85,15 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
         queryResultsData.seek(0)  # Reset the file pointer to the beginning
 
         # Initialize the time estimator
-        time_estimator = TimeEstimator(totalDocuments)
-
+        time_estimator = None
 
         docCounter = 0
-        docDownloadedCounter = 0
+        
         #begin document loop
         for resultLine in queryResultsData:
         
             docID = resultLine.split('\t')[0]
-            
+         
             if (docID != 'doc_id'):
                 
                 #reset the variables
@@ -104,8 +103,11 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
 
                 # check if we are caught up to the last doc_id
                 if (caughtUp):
-                    docDownloadedCounter += 1
-                    time_estimator.update_documents_downloaded(docDownloadedCounter)
+                    if time_estimator is None:
+                        
+                        time_estimator = TimeEstimator(totalDocuments - docCounter)
+
+                    time_estimator.increment_documents_downloaded()
                     estimated_remaining_time = time_estimator.get_estimated_remaining_time()
 
                     print(f'{datetime.now()} Downloading {docID} {docCounter}/{totalDocuments} {docCounter/totalDocuments*100:.0f}% ({estimated_remaining_time/60:.0f} minutes remaining)')
@@ -216,8 +218,8 @@ class TimeEstimator:
         self.total_documents = total_documents
         self.documents_downloaded = 0
 
-    def update_documents_downloaded(self, count):
-        self.documents_downloaded = count
+    def increment_documents_downloaded(self):
+        self.documents_downloaded += 1
 
     def get_estimated_remaining_time(self):
         elapsed_time = time.time() - self.start_time
