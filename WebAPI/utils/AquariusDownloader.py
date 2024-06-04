@@ -15,6 +15,9 @@ from datetime import datetime
 import pandas as pd
 import re
 
+class UnauthorizedException(Exception):
+    pass
+
 class CrossRefDataWriter:
     def __init__(self,inputfile,uniqueIdentifier):
         
@@ -146,6 +149,11 @@ def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,
                             imageFile.close ()
                             
                             tiff_files_li.append(fileName)
+                        elif (response.status_code==401):
+                            #print(f'{datetime.now()} Unauthorized to download document {docID}. Exiting...')
+
+                            #raise an exception to stop the script
+                            raise UnauthorizedException(f'Unauthorized to download document {docID}.')
                         #increment the page counter
                         pageCounter += 1   
 
