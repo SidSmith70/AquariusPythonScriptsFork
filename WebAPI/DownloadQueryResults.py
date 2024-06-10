@@ -1,7 +1,7 @@
 
 ########################################################################################################################
 # 
-# Purpose: This script downloads the query results obtained from running a query in Aquarius Web and saving
+# Purpose: This script downloads the query results the user already obtained from running a query in Aquarius Web and saving
 # the results to a GridViewExport.csv file. It then downloads the images associated with the query results.
 #
 ########################################################################################################################
@@ -31,8 +31,12 @@ if (len(sys.argv) > 1):
 #generate a unique id so that we can create a unique folder for this run.
 uniqueID = datetime.now().strftime('%Y%m%d%H%M%S')
 
-#download the images
 try:
-    AquariusDownloader.DownloadImagesFromQueryResults(inputFile,username,password,server,multipage,uniqueID,type)
+    #download the images
+    aqdownloader = AquariusDownloader.QueryResultsDownloader(server,username,password)
+
+    aqdownloader.download_documents(inputFile,multipage,uniqueID,type)
+
 except Exception as e:
-    print(f"An exception occurred: {str(e)}")
+    print (f"An exception occurred: {str(e)}")
+

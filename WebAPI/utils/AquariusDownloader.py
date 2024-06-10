@@ -15,8 +15,6 @@ from datetime import datetime
 import pandas as pd
 import re
 
-class UnauthorizedException(Exception):
-    pass
 
 class CrossRefDataWriter:
     def __init__(self,inputfile,uniqueIdentifier):
@@ -41,10 +39,12 @@ class CrossRefDataWriter:
         else: 
             # read the file and get the doc_id from the last line
             with open(self.imageXRefFilePath, 'r') as f:
-                last_line = f.readlines()[-1]
-                self._last_doc_id = last_line.split('\t')[0]
-                self._last_page = int(last_line.split('\t')[1])
-
+                lines = f.readlines()
+                line_count = len(lines)
+                if line_count > 1:
+                    last_line = lines[-1]
+                    self._last_doc_id = last_line.split('\t')[0]
+                    self._last_page = int(last_line.split('\t')[1])
     @property
     def last_doc_id(self):        
         return self._last_doc_id
@@ -60,151 +60,6 @@ class CrossRefDataWriter:
     def Close(self):
         self.imageXRefFile.close()
 
-
-def DownloadImagesFromQueryResults(inputFile,username,password,server,multiPage,uniqueIdentifier, type='image'):
-    
-    webApi=AquariusImaging.AquariusWebAPIWrapper(server)
-
-    if (username != ""):
-        webApi.authenticate(username,password)
-
-    while webApi.Authenticated  == False:
-        username=input("username: ")
-        password=input("password: ")
-        webApi.authenticate(username,password)
-
-    #read the text file
-    with open(inputFile, 'r', encoding='UTF-8') as queryResultsData:
-
-        #establish a cross reference file
-        XrefDataWriter=CrossRefDataWriter(inputFile,uniqueIdentifier)
-
-        # initialize the variable that determines if we are caught up to the last doc_id
-        caughtUp = (XrefDataWriter.last_doc_id == '')
-
-        # Count the total number of lines in the file
-        totalDocuments = sum(1 for line in queryResultsData)
-
-        queryResultsData.seek(0)  # Reset the file pointer to the beginning
-
-        # Initialize the time estimator
-        time_estimator = None
-
-        docCounter = 0
-        
-        #begin document loop
-        for resultLine in queryResultsData:
-        
-            docID = resultLine.split('\t')[0]
-         
-            if (docID != 'doc_id'):
-                
-                #reset the variables
-                pageCounter= 1
-                docCounter += 1
-                tiff_files_li=[]
-
-                # check if we are caught up to the last doc_id
-                if (caughtUp):
-                    if time_estimator is None:
-                        
-                        time_estimator = TimeEstimator(totalDocuments - docCounter)
-
-                    time_estimator.increment_documents_downloaded()
-                    estimated_remaining_time = time_estimator.get_estimated_remaining_time()
-
-                    print(f'{datetime.now()} Downloading {docID} {docCounter}/{totalDocuments} {docCounter/totalDocuments*100:.0f}% ({estimated_remaining_time/60:.0f} minutes remaining)')
-                elif (docID == XrefDataWriter.last_doc_id ):
-                    print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
-                    pageCounter = XrefDataWriter.last_page + 1
-                    caughtUp = True
-                else:
-                    print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
-                    continue
-
-                #get the document page count
-                docresponse = webApi.GetDocument(docID)
-            
-                #check for good response. 
-                if (docresponse.status_code==200):
-                    doc = docresponse.json()
-            
-                    #begin page loop
-                    while (pageCounter <= doc["pageCount"]) and ( doc["pageCount"] > 0):
-
-                        #retrieve the page
-                        #write the image to disk
-                        response=webApi.GetPage(docID,pageCounter,type)
-                        
-                        #check for good response. Failed response indicates we've run out of pages.
-                        if (response.status_code==200):
-
-                            fileName = response.headers['Content-Disposition']
-                            fileName = os.path.join( XrefDataWriter.outputPath ,  docID + str(pageCounter) + re.sub('.*filename=(.+)(?: |$)','\\1',fileName))
-                            fileName = fileName.replace('"','')
-                            
-                            #write the image to disk
-                            imageFile = open(fileName, 'wb+')
-                            imageFile.write(response.content)
-                            imageFile.close ()
-                            
-                            tiff_files_li.append(fileName)
-                        elif (response.status_code==401):
-                            #print(f'{datetime.now()} Unauthorized to download document {docID}. Exiting...')
-
-                            #raise an exception to stop the script
-                            raise UnauthorizedException(f'Unauthorized to download document {docID}.')
-                        #increment the page counter
-                        pageCounter += 1   
-
-                        
-                    if(len(tiff_files_li) == 1):
-                        pageCounter = 1
-                        XrefDataWriter.Write(docID,pageCounter,tiff_files_li[0])   
-
-                    elif(len(tiff_files_li) > 1 and multiPage):
-
-                        #create a multi page tiff
-                        newTif=None
-
-                        for tiffFile in tiff_files_li:
-                            if (newTif == None):
-                                newTif=tifftools.read_tiff(tiffFile)
-                            else:
-                                tiftoadd = tifftools.read_tiff(tiffFile)
-                                newTif['ifds'].extend(tiftoadd['ifds'])
-                        
-                        multiTiff = tiff_files_li[0].lower().replace(".tif","-multi.tif")
-                        
-                        tifftools.write_tiff(newTif,multiTiff)
-
-
-                        #tifftools.tiff_concat(tiff_files_li,multiTiff, overwrite=True)
-                        XrefDataWriter.Write(docID,1,multiTiff)
-                        
-                        #remove the single page images
-                        for imagefile in tiff_files_li:
-                            os.remove(imagefile)
-                    
-                    else:
-                        if ((XrefDataWriter.last_doc_id != '' and docID == XrefDataWriter.last_doc_id )):
-                            pageCounter = XrefDataWriter.last_page + 1
-                        else:
-                            pageCounter = 1
-                        for singlepageimage in tiff_files_li:
-                            XrefDataWriter.Write(docID,pageCounter,singlepageimage)
-                            #increment the page counter
-                            pageCounter += 1
-
-                else:
-                    # error downloading document
-                    print(f'{datetime.now()} Error downloading document {docID}. Error code: {docresponse.status_code}')
-
-            #   end page loop
-        #end document loop
-
-    XrefDataWriter.Close()
-    print(f'{datetime.now()} Process complete!')
 
 def GetMergedData(inputFile):
         
@@ -235,3 +90,124 @@ class TimeEstimator:
         remaining_documents = self.total_documents - self.documents_downloaded
         estimated_remaining_time = average_time_per_document * remaining_documents
         return estimated_remaining_time
+    
+   
+class QueryResultsDownloader:
+    def __init__(self, server, username, password):
+        self.webApi = AquariusImaging.AquariusWebAPIWrapper(server)
+        if (username != ""):
+            self.webApi.authenticate(username, password)
+        
+    def authenticate(self, username, password):
+        while not self.webApi.Authenticated:
+            username = input("username: ")
+            password = input("password: ")
+            self.webApi.authenticate(username, password)
+
+    def download_documents(self, inputFile, multiPage, uniqueIdentifier, type='image'):
+        with open(inputFile, 'r', encoding='UTF-8') as queryResultsData:
+            
+            XrefDataWriter = CrossRefDataWriter(inputFile, uniqueIdentifier)
+              # initialize the variable that determines if we are caught up to the last doc_id
+            self.caughtUp = (XrefDataWriter.last_doc_id == '')
+
+            # Count the total number of lines in the file, subtracting the header line
+            self.totalDocuments = sum(1 for line in queryResultsData) - 1
+
+            queryResultsData.seek(0)  # Reset the file pointer to the beginning
+
+            # Initialize the time estimator
+            self.time_estimator = None
+
+            self.docCounter = 0
+
+            self.time_estimator = TimeEstimator(self.totalDocuments - self.docCounter)
+
+            self.process_documents(queryResultsData, XrefDataWriter, multiPage, type)
+
+    def process_documents(self, queryResultsData, XrefDataWriter, multiPage, type):
+        for resultLine in queryResultsData:
+            docID = resultLine.split('\t')[0]
+            #check that we are caught up to the last doc_id in the cross reference file.
+            if docID != 'doc_id':
+                                                
+                self.process_document(docID, XrefDataWriter, multiPage, type)
+
+        print(f'{datetime.now()} Process complete! {self.docCounter} documents downloaded.')
+
+    def process_document(self, docID, XrefDataWriter, multiPage, type):
+        self.docCounter += 1
+        starting_page = 1
+        if not self.caughtUp:
+            if docID == XrefDataWriter.last_doc_id:
+                self.caughtUp = True
+                print(f'{datetime.now()} Resuming at {docID} page {XrefDataWriter.last_page}')
+                starting_page = XrefDataWriter.last_page + 1
+            else:
+                
+                print(f'{datetime.now()} Skipping {docID}, already Downloaded ')
+                
+                #exit the function
+                return
+            
+        self.time_estimator.increment_documents_downloaded()  
+        print(f'{datetime.now()} Downloading {docID} {self.docCounter}/{self.totalDocuments} {self.docCounter/self.totalDocuments*100:.0f}% ({self.time_estimator.get_estimated_remaining_time()/60:.0f} minutes remaining)')
+        docresponse = self.webApi.GetDocument(docID)
+        if docresponse.status_code == 200:
+            doc = docresponse.json()
+            self.process_pages(doc, docID, XrefDataWriter, multiPage, type, starting_page)
+        else:
+            raise Exception(f'Error downloading document {docID}. Error code: {docresponse.status_code}')
+
+    def process_pages(self, doc, docID, XrefDataWriter, multiPage, type, starting_page):
+
+        # initialize a page files list to store the saved files for this document.
+        self.page_files = []
+
+        for pageCounter in range(starting_page, doc["pageCount"] + 1):
+            self.process_page(docID, pageCounter, XrefDataWriter,  type)
+        
+        if multiPage:
+            if(len(self.page_files) == 1):
+                pageCounter = 1
+                XrefDataWriter.Write(docID,pageCounter,self.page_files[0])   
+            else:
+                self.create_multi_page_tiff(docID, XrefDataWriter)
+        else:
+            #loop through the page files and write them to the cross reference file.
+            for pageCounter, page_file in enumerate(self.page_files, start=1):
+                XrefDataWriter.Write(docID, pageCounter, page_file)
+
+    def create_multi_page_tiff(self, docID, XrefDataWriter):
+        newTif = None
+        for tiffFile in self.page_files:
+            if newTif is None:
+                newTif = tifftools.read_tiff(tiffFile)
+            else:
+                tiftoadd = tifftools.read_tiff(tiffFile)
+                newTif['ifds'].extend(tiftoadd['ifds'])
+        multiTiff = self.page_files[0].lower().replace(".tif", "-multi.tif")
+        tifftools.write_tiff(newTif, multiTiff)
+        XrefDataWriter.Write(docID, 1, multiTiff)
+        for imagefile in self.page_files:
+            os.remove(imagefile)    
+
+    def process_page(self, docID, pageCounter, XrefDataWriter,  type):
+        response = self.webApi.GetPage(docID, pageCounter, type)
+        if response.status_code == 200:
+            self.save_page(response, docID, pageCounter, XrefDataWriter)
+            
+        elif response.status_code == 401:
+            raise Exception(f'Unauthorized to download document {docID}.')
+
+    def save_page(self, response, docID, pageCounter, XrefDataWriter):
+        fileName = self.get_filename(response, docID, pageCounter, XrefDataWriter)
+        with open(fileName, 'wb+') as imageFile:
+            imageFile.write(response.content)
+            self.page_files.append(fileName)
+
+    def get_filename(self, response, docID, pageCounter, XrefDataWriter):
+        fileName = response.headers['Content-Disposition']
+        fileName = os.path.join(XrefDataWriter.outputPath, docID + str(pageCounter) + re.sub('.*filename=(.+)(?: |$)', '\\1', fileName))
+        return fileName.replace('"', '')
+    
