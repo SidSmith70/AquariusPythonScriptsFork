@@ -15,11 +15,14 @@ inputFile = "./GridViewExport.csv"
 def GenerateFileName(row):
     
     #Configure the file naming convention here!!
-    fileName = row.Type + "-" + str(row.Year) + "-" + row['Name'] + "-" + row.doc_id + ".pdf"
+    fileName = row.Division   # + ".pdf" # row.Type + "-" + str(row.Year) + "-" + row['Name'] + "-" + row.doc_id + ".pdf"
 
     #remove illegal characters from filename:
     fileName = fileName.replace("/","-")
     fileName = fileName.replace(":","-")
+    fileName = fileName.replace(".","")
+
+    fileName += ".pdf"
 
     return fileName
 
