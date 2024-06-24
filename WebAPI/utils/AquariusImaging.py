@@ -210,8 +210,7 @@ class AQJsonHelper:
 
     def new_document_JSON(self,indexValues):
             #create json for new document
-        self.update_values_based_on_type(indexValues)
-
+        
         indexData = []
         for field, value in self.fieldMap.items():
             
@@ -227,7 +226,6 @@ class AQJsonHelper:
         return newDocumentJson
 
     def query_JSON(self,indexValues):
-
        
         #create json for query
 
@@ -251,24 +249,3 @@ class AQJsonHelper:
             for item in self.queryDef['queryFields']:
                 tb[item['description']] = item['fieldName']
             return tb
-
-    def update_values_based_on_type(self,indexValues):
-        for i, val in enumerate(indexValues):
-            # Find the corresponding field in QRFieldMap using the index
-            for field, settings in self.fieldMap.items():
-                if settings["index"] == i:
-                    field_type = settings["type"]
-                    
-                    # Update the value based on the type
-                    if field_type == "date":
-                        if len(val) == 8 and val.isdigit():
-                            try:
-                                dt = datetime.strptime(val, '%m%d%Y')
-                                indexValues[i] = dt.strftime('%m/%d/%Y')
-                            except ValueError:
-                                print(f'{datetime.now()} Not a valid date: {val}')
-                    elif field_type == "text":
-                        # Example transformation for text, if needed
-                        indexValues[i] = val.strip()
-                    # Add other type cases as necessary
-

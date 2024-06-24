@@ -72,11 +72,35 @@ def extract_file_name_data(file_path):
         filename = os.path.splitext(os.path.basename(file_path))[0]
 
         # split the values out of the filename delimited by a underscore.
-        return filename.split("_")
+        values = filename.split("_")
+        return update_values_based_on_type(values)
         
     except:
         print(f'{datetime.now()} Error extracting data from filename {file_path}')
         return None
+
+
+def update_values_based_on_type(indexValues):
+    for i, val in enumerate(indexValues):
+        # Find the corresponding field in QRFieldMap using the index
+        for field, settings in QRFieldMap.items():
+            if settings["index"] == i:
+                field_type = settings["type"]
+                
+                # Update the value based on the type
+                if field_type == "date":
+                    if len(val) == 8 and val.isdigit():
+                        try:
+                            dt = datetime.strptime(val, '%m%d%Y')
+                            indexValues[i] = dt.strftime('%m/%d/%Y')
+                        except ValueError:
+                            print(f'{datetime.now()} Not a valid date: {val}')
+                elif field_type == "text":
+                    # Example transformation for text, if needed
+                    indexValues[i] = val.strip()
+                # Add other type cases as necessary
+    return indexValues
+
 
 # Create a MyHandler instance to handle the event
 handler =  AquariusFileHandler(doctypeCode,QRFieldMap,server,username,password,appendExistingDocuments,filter,extract_file_name_data)
