@@ -21,14 +21,16 @@ doctypeCode = os.environ.get("DOCTYPEID")
 server = os.environ.get("AQUARIUSAPIURL")   
 
 folderToWatch = '/media/sid/New Volume/CFGTest2'  # 'c:\\temp\\cfgtest\\'
+
 QRFieldMap = {
-            "Account Number": 2,
-            "Customer Name":3,
-            "Country": 0,
-            "Branch":1,
-            "Date":4,
-            "Status": 5
+    "Account Number": {"index": 2, "type": "text"},
+    "Customer Name": {"index": 3, "type": "text"},
+    "Country": {"index": 0, "type": "text"},
+    "Branch": {"index": 1, "type": "text"},
+    "Date": {"index": 4, "type": "date"},
+    "Status": {"index": 5, "type": "text"}
 }
+
 appendExistingDocuments = False
 filter = ""  #"Status = ACTIVE"
 

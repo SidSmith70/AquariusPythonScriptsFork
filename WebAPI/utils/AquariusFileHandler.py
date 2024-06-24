@@ -86,16 +86,9 @@ class AquariusFileHandler(FileSystemEventHandler):
                
                 if(self.checkFilter(indexValues) == True):
 
-                    for i, val in enumerate(indexValues):
-                        
-                        if len(val) == 8 and val.isdigit():
-                            try:
-                                dt = datetime.strptime(val, '%m%d%Y')
-                                indexValues[i] = dt.strftime('%m/%d/%Y')
-                            except ValueError:
-                                print(f'{datetime.now()} Not a valid date: {val}')
 
-                    
+
+                                   
                     if (self.aqApi.Authenticated):
 
                         docID = None
