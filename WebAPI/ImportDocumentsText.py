@@ -1,4 +1,7 @@
 
+import os
+from dotenv import load_dotenv
+import utils.PDFSplitter as PDFSplitter
 ########################################################################################################################
 # 
 # Purpose: This script imports data into Aquarius DMS from a text file. The text file should contain the indexes for the
@@ -15,21 +18,19 @@ server = os.environ.get("AQUARIUSAPIURL")
 doctypeCode = os.environ.get("DOCTYPEID")
 
 FieldMap = {
-            "CLIENT NUMBER": 1,
-            "BATCH NUMBER":2,
-            "YEAR": 3,
-            "Date Scanned":4
+            "Year": {"index": 0, "type": "text"},
+            "Name":{"index": 3, "type": "text"},
+            "PPIN": {"index": 2, "type": "text"},
+            "Parcel Number":{"index": 1, "type": "text"},
+            "Address":{"index": 4, "type": "text"},
 }
 
 #************************ CONFIGURATION ***********************************************************
-
 
 import os
 import sys
 import utils.AquariusImaging as AquariusImaging
 from datetime import datetime
-
-
 
 #function for running a particular text file
 def ProcessFile( file_path):
@@ -82,10 +83,29 @@ def ProcessFile( file_path):
                         if (response.status_code==200):
                             docID = response.json()
                         
-                        print(f'{datetime.now()} Created new document: {docID}')   
-                        
-                        # add 1 to the document counter variable
-                        documentCounter += 1
+                            print(f'{datetime.now()} Created new document: {docID}')   
+                            
+                            # add 1 to the document counter variable
+                            documentCounter += 1
+
+                            # split PDF file if necessary
+                            pdffile = indexValues[len(indexValues) - 1]
+                            pdfSplitter = PDFSplitter.PDFSplitter(pdffile, dpi=300, threshold=210)
+
+                            # loop through the pages and add each one to the document.
+                            for temp_path in pdfSplitter.get_temp_files():
+                                response = aqApi.AddPageToDocument(docID, temp_path)
+                                if (response.status_code==200):
+                                    print(f'{datetime.now()} Added page to document: {docID}')
+
+                                    #increment the page counter
+                                    pageCounter += 1
+                                else:
+                                    print(f'{datetime.now()} Error adding page to document: {docID}')
+                                    raise Exception(f'Error adding page to document: {docID} {response.status_code}')
+                        else:
+                            print(f'{datetime.now()} Error creating document: {response.status_code}')
+                            raise Exception(f'Error creating document: {response.status_code}')
 
             #print to the console the number of documents and pages processed
             print(f'{datetime.now()} Processed {documentCounter} documents and {pageCounter} pages')                         
@@ -97,7 +117,7 @@ def ProcessFile( file_path):
         print(f"{datetime.now()} Finished {file_path}")
         #os.remove(file_path)
 
-ProcessFile("C:\\AquariusExport\\testdata.txt")
+ProcessFile("/home/sid/Downloads/data.txt")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

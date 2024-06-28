@@ -1,53 +1,21 @@
-
-########################################################################################################################
-# 
-# Purpose: This script imports data into Aquarius DMS from using a QR code to identify the document.
-#
-########################################################################################################################
-
-import os
-import time
-from datetime import datetime
 import utils.AquariusImaging as AquariusImaging
 import tempfile
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from pyzbar.pyzbar import decode
+from datetime import datetime
+import os
+import time
 import cv2
-from dotenv import load_dotenv
 
-#******************* CONFIGURATION  ********************************************
-load_dotenv()
-username = os.environ.get("USERNAME")
-password = os.environ.get("PASSWORD")
-doctypeCode = os.environ.get("DOCTYPEID")
-server = os.environ.get("AQUARIUSAPIURL")   
-
-folderToWatch = 'c:\\temp\\cfgtest\\'
-QRFieldMap = {
-            "Account Number": 2,
-            "Customer Name":3,
-            "Country": 0,
-            "Branch":1,
-            "Date":4,
-            "Status": 5
-}
-appendExistingDocuments = False
-filter = ""  #"Status = ACTIVE"
-
-#************************ CONFIGURATION ***********************************************************
-
-
-
-# Define a class to handle file system events
-class AQFileHandlerBase(FileSystemEventHandler):
+class AquariusFileHandler(FileSystemEventHandler):
    
-    def __init__(self, doctypeCode,fieldMap,server,username,password, appendExistingDocuments,filter ):
+    def __init__(self, doctypeCode,fieldMap,server,username,password, appendExistingDocuments,filter, data_extractor_function ):
         super().__init__()
 
         self.appendExistingDocuments = appendExistingDocuments
         self.filter = filter
-       
+        self.extract_data = data_extractor_function
+        self.appendExistingDocuments = appendExistingDocuments
+
         # Authenticate to Aquarius Imaging
         self.aqApi =  AquariusImaging.AquariusWebAPIWrapper(server)                     
         self.aqApi.authenticate(username,password)
@@ -92,9 +60,6 @@ class AQFileHandlerBase(FileSystemEventHandler):
                 else: return False
 
 
-
-class QRFileHandler(AQFileHandlerBase):
-
     def on_created(self, event):
         try:
             if not event.is_directory and event.src_path.lower().endswith('.tif'):
@@ -107,56 +72,27 @@ class QRFileHandler(AQFileHandlerBase):
         except Exception as ex:
             print(f'{datetime.now()} Error: {str(ex)}')
 
-
-     # Read the QR code from the first image in the multipage tiff file
-    def read_qr_code(self,file_path):
-        
-        try:
-
-            img =  cv2.imread(file_path) 
-            decoded_objects = decode(img)
-            if decoded_objects:            
-
-                # Return the first QR code value as a string
-                return decoded_objects[0].data.decode('utf-8')
-            
-            else:
-                return None
-        except:
-            print(f'{datetime.now()} Error reading QR code')
-            return None
-        
     def ProcessFile(self, file_path):
 
-        # Read the QR code from the first image in the multipage tiff file
+        # Extract metadata from file.
         try:
             print(f"{datetime.now()} Processing  {file_path}")
-            qr_code_value = self.read_qr_code(file_path)
+            indexValues =  self.extract_data(file_path)
         
-            if qr_code_value:
-                print(f'{datetime.now()} QR Code Value: {qr_code_value}')
+            if indexValues:
+                #print(f'{datetime.now()} QR Code Value: {qr_code_value}')
 
-                indexValues = qr_code_value.split("|")
+                #indexValues = qr_code_value.split("|")
                
                 if(self.checkFilter(indexValues) == True):
-
-                    for i, val in enumerate(indexValues):
-                        
-                        if len(val) == 8 and val.isdigit():
-                            try:
-                                dt = datetime.strptime(val, '%m%d%Y')
-                                indexValues[i] = dt.strftime('%m/%d/%Y')
-                            except ValueError:
-                                print(f'{datetime.now()} Not a valid date: {val}')
-
-                    
+                                   
                     if (self.aqApi.Authenticated):
 
                         docID = None
                         queryResults = []
 
                         #if we're appending documents, attempt to look up this document.
-                        if (appendExistingDocuments == True):
+                        if (self.appendExistingDocuments == True):
                         
                             #run the query
                             response = self.aqApi.RunQuery(self.JSONHelper.query_JSON(indexValues))
@@ -222,31 +158,3 @@ class QRFileHandler(AQFileHandlerBase):
                 print(f"{datetime.now()} error: QR Code not found: {file_path}")
         except Exception as ex:
             print(f'{datetime.now()} Error: {ex.args[0]}')
-
-
-
-
-# Create a MyHandler instance to handle the event
-handler = QRFileHandler(doctypeCode,QRFieldMap,server,username,password,appendExistingDocuments,filter)
-
-#to process all files in the folder:
-for root, _, files in os.walk(folderToWatch):
-        for filename in files:
-            # print the size of the file
-            if filename.lower().endswith('.tif'):
-                file_path = os.path.join(root, filename)
-                
-                handler.ProcessFile(file_path)
-
-
-# Create an observer to watch the folder for file system events
-observer = Observer()
-observer.schedule(handler, folderToWatch, recursive=True)
-observer.start()
-
-try:
-    while True:
-        time.sleep(5)
-except KeyboardInterrupt:
-    observer.stop()
-observer.join()

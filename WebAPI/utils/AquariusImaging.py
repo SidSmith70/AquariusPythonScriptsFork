@@ -210,10 +210,11 @@ class AQJsonHelper:
 
     def new_document_JSON(self,indexValues):
             #create json for new document
-            
+        
         indexData = []
         for field, value in self.fieldMap.items():
-            indexData.append({"fieldName": field, "value": indexValues[value]})
+            
+            indexData.append({"fieldName": field, "value": indexValues[value['index']]})
             
         newDocumentJson = {
             "application": None,
@@ -225,6 +226,7 @@ class AQJsonHelper:
         return newDocumentJson
 
     def query_JSON(self,indexValues):
+       
         #create json for query
 
         queryFields=[]
@@ -233,7 +235,7 @@ class AQJsonHelper:
            
             fieldName = ft.get(field)
             if (field != ""):
-                queryFields.append({'searchValue': indexValues[value], 'operatorString': 'eq', 'fieldName': fieldName, 'description': field, 'maxLength': 0, 'listValues': []})
+                queryFields.append({'searchValue': indexValues[value['index']], 'operatorString': 'eq', 'fieldName': fieldName, 'description': field, 'maxLength': 0, 'listValues': []})
 
         thisQuery = self.queryDef
         thisQuery["queryFields"] = queryFields
@@ -247,6 +249,3 @@ class AQJsonHelper:
             for item in self.queryDef['queryFields']:
                 tb[item['description']] = item['fieldName']
             return tb
-
-
-
