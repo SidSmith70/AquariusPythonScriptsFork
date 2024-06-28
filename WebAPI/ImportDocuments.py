@@ -64,7 +64,7 @@ def extract_qr_code_data(file_path):
         return None
 
 # Extract data elements from the filename
-def extract_file_name_data(file_path):
+def extract_metadata_from_file_name(file_path):
     
     try:
 
@@ -73,14 +73,14 @@ def extract_file_name_data(file_path):
 
         # split the values out of the filename delimited by a underscore.
         values = filename.split("_")
-        return update_values_based_on_type(values)
+        return format_values_based_on_type(values)
         
     except:
         print(f'{datetime.now()} Error extracting data from filename {file_path}')
         return None
 
 
-def update_values_based_on_type(indexValues):
+def format_values_based_on_type(indexValues):
     for i, val in enumerate(indexValues):
         # Find the corresponding field in QRFieldMap using the index
         for field, settings in QRFieldMap.items():
@@ -103,7 +103,7 @@ def update_values_based_on_type(indexValues):
 
 
 # Create a MyHandler instance to handle the event
-handler =  AquariusFileHandler(doctypeCode,QRFieldMap,server,username,password,appendExistingDocuments,filter,extract_file_name_data)
+handler =  AquariusFileHandler(doctypeCode,QRFieldMap,server,username,password,appendExistingDocuments,filter,extract_metadata_from_file_name)
 
 #to process all files in the folder:
 for root, _, files in os.walk(folderToWatch):

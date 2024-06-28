@@ -74,7 +74,7 @@ class AquariusFileHandler(FileSystemEventHandler):
 
     def ProcessFile(self, file_path):
 
-        # Read the QR code from the first image in the multipage tiff file
+        # Extract metadata from file.
         try:
             print(f"{datetime.now()} Processing  {file_path}")
             indexValues =  self.extract_data(file_path)
@@ -85,9 +85,6 @@ class AquariusFileHandler(FileSystemEventHandler):
                 #indexValues = qr_code_value.split("|")
                
                 if(self.checkFilter(indexValues) == True):
-
-
-
                                    
                     if (self.aqApi.Authenticated):
 
