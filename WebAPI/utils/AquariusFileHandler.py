@@ -8,13 +8,14 @@ import cv2
 
 class AquariusFileHandler(FileSystemEventHandler):
    
-    def __init__(self, doctypeCode,fieldMap,server,username,password, appendExistingDocuments,filter, data_extractor_function ):
+    def __init__(self, doctypeCode,fieldMap,server,username,password, appendExistingDocuments,filter, data_extractor_function, extensions_to_watch = ['.tif', '.jpg', '.jpeg','.pdf', '.png']):
         super().__init__()
 
         self.appendExistingDocuments = appendExistingDocuments
         self.filter = filter
         self.extract_data = data_extractor_function
         self.appendExistingDocuments = appendExistingDocuments
+        self.extensions_to_watch = extensions_to_watch  # ['.tif', '.jpg', '.jpeg','.pdf', '.png']  # Example extensions
 
         # Authenticate to Aquarius Imaging
         self.aqApi =  AquariusImaging.AquariusWebAPIWrapper(server)                     
@@ -62,13 +63,15 @@ class AquariusFileHandler(FileSystemEventHandler):
 
     def on_created(self, event):
         try:
-            if not event.is_directory and event.src_path.lower().endswith('.tif'):
-                file_path = event.src_path
-                file_size = -1
-                while os.path.getsize(file_path) != file_size:
-                    file_size = os.path.getsize(file_path)
-                    time.sleep(5) # wait for 5 seconds
-                self.ProcessFile(file_path)
+            if not event.is_directory:
+                file_extension = os.path.splitext(event.src_path.lower())[1]
+                if file_extension in self.extensions_to_watch:
+                    file_path = event.src_path
+                    file_size = -1
+                    while os.path.getsize(file_path) != file_size:
+                        file_size = os.path.getsize(file_path)
+                        time.sleep(5) # wait for 5 seconds
+                    self.ProcessFile(file_path)
         except Exception as ex:
             print(f'{datetime.now()} Error: {str(ex)}')
 
@@ -112,44 +115,50 @@ class AquariusFileHandler(FileSystemEventHandler):
                                 docID = response.json()
                             
                             print(f'{datetime.now()} Created new document: {docID}') 
-                                            
-                        temp_files = []
-                        # Create a temporary directory to store the single-page TIFF files.
-                        # When we exit this scope, the files are automatically deleted.
-                        with tempfile.TemporaryDirectory() as temp_dir:
 
-                        
-                            # Open the multipage TIFF file
-                            tiff_file = []
-
-                            #tiff_file = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_ANYCOLOR)
-                            retbool, tiff_file = cv2.imreadmulti(mats=tiff_file,
-                                                        filename=file_path,
-                                                        flags=cv2.IMREAD_ANYCOLOR)
+                        # if this is a tif file, we need to split it into single page tiffs
+                        # and upload each page individually.
+                        if (file_path.lower().endswith('.tif')):                    
+                            temp_files = []
+                            # Create a temporary directory to store the single-page TIFF files.
+                            # When we exit this scope, the files are automatically deleted.
+                            with tempfile.TemporaryDirectory() as temp_dir:
                             
-                            # Iterate over each page in the TIFF file
-                            if len(tiff_file) > 0:
-                                for i in range(len(tiff_file)):
-                                    
-                                    #skip the QR Code page if we're adding to an existing document.
-                                    if not(len(queryResults) > 0 and i==0):
-                                                                                
-                                        # Create a filename for the single-page TIFF file
-                                        output_file = os.path.join(temp_dir, f"page_{i}.tif")
+                                # Open the multipage TIFF file
+                                tiff_file = []
 
-                                        # Save the current page to the output file
-                                        cv2.imwrite(output_file, tiff_file[i])
-                                        #file_size = os.path.getsize( tiff_file[i].filename)
-                                        print(f'{datetime.now()} Adding {output_file} to {docID}')
+                                #tiff_file = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_ANYCOLOR)
+                                retbool, tiff_file = cv2.imreadmulti(mats=tiff_file,
+                                                            filename=file_path,
+                                                            flags=cv2.IMREAD_ANYCOLOR)
+                                
+                                # Iterate over each page in the TIFF file
+                                if len(tiff_file) > 0:
+                                    for i in range(len(tiff_file)):
                                         
-                                        temp_files.append(output_file)
+                                        #skip the QR Code page if we're adding to an existing document.
+                                        if not(len(queryResults) > 0 and i==0):
+                                                                                    
+                                            # Create a filename for the single-page TIFF file
+                                            output_file = os.path.join(temp_dir, f"page_{i}.tif")
 
-                                if (self.aqApi.AddPagesToDocument(docID, temp_files).status_code != 200):
-                                    raise Exception(f'Error uploading files:')
-                                        
+                                            # Save the current page to the output file
+                                            cv2.imwrite(output_file, tiff_file[i])
+                                            #file_size = os.path.getsize( tiff_file[i].filename)
+                                            print(f'{datetime.now()} Adding {output_file} to {docID}')
+                                            
+                                            temp_files.append(output_file)
+
+                                    if (self.aqApi.AddPagesToDocument(docID, temp_files).status_code != 200):
+                                        raise Exception(f'Error uploading files:')
+                        else:
+                            #if this is not a tif file, just upload it.
+                            print(f'{datetime.now()} Adding {file_path} to {docID}')
+                            if (self.aqApi.AddPagesToDocument(docID, [file_path]).status_code != 200):
+                                raise Exception(f'Error uploading files:')             
                         #delete the file.
                         print(f"{datetime.now()} Deleting {file_path}")
-                        os.remove(file_path)
+                        #os.remove(file_path)
                     else:
                         print(f"{datetime.now()} error: user is not authenticated.")
                 else:
