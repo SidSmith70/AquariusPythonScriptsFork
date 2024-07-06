@@ -12,12 +12,22 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import json
+import mimetypes
 
 class AquariusWebAPIWrapper:
     
     def __init__(self,server):
         self.server=server
         self.Authenticated =False
+
+    def get_mime_type(self,filepath):
+        """
+        Returns the MIME type for the given filepath.
+        """
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if mime_type is None:
+            mime_type = 'application/octet-stream'  # Default MIME type if unknown
+        return mime_type
     
     #Authenticate
     def authenticate(self,username,password):
@@ -93,8 +103,11 @@ class AquariusWebAPIWrapper:
     def AddPageToDocument(self,docID, filepath):
         self.__refreshToken()
         payload={}
+        
+        mime_type = self.get_mime_type(filepath)  # Dynamically get the MIME type
+    
         files=[
-        ('file',(os.path.basename(filepath),open(filepath,'rb'),'image/tiff'))
+        ('file',(os.path.basename(filepath),open(filepath,'rb'),mime_type))
         ]
         response = requests.request("POST", self.server + '/api/DocPages/' + docID, headers=self.headers, data=payload, files=files)
         
@@ -122,7 +135,8 @@ class AquariusWebAPIWrapper:
 
         for filepath in filepaths:
             file_size = os.path.getsize(filepath)
-            
+            mime_type = self.get_mime_type(filepath)  # Dynamically get the MIME type
+    
             # If the current file alone exceeds 4MB
             if file_size > MAX_SIZE:
                 # Send accumulated files first (if any)
@@ -131,9 +145,9 @@ class AquariusWebAPIWrapper:
                     last_response = send_files(accumulated_files)
                     accumulated_files = []
                     accumulated_size = 0
-
+              
                 # Send the large file
-                last_response = send_files([('file', (os.path.basename(filepath), open(filepath, 'rb'), 'image/tiff'))])
+                last_response = send_files([('file', (os.path.basename(filepath), open(filepath, 'rb'), mime_type))])
                 continue
 
             # If adding the current file exceeds the 4MB limit
@@ -144,7 +158,7 @@ class AquariusWebAPIWrapper:
                 accumulated_size = 0
 
             # Add the current file to the accumulator
-            accumulated_files.append(('file', (os.path.basename(filepath), open(filepath, 'rb'), 'image/tiff')))
+            accumulated_files.append(('file', (os.path.basename(filepath), open(filepath, 'rb'), mime_type)))
             accumulated_size += file_size
 
         # Send any remaining files
