@@ -207,7 +207,7 @@ class AquariusWebAPIWrapper:
             self.__refreshToken()
 
             try:
-                response = requests.get(self.server + '/api/Documents?json=' + query,headers=self.headers)
+                response = requests.get(self.server + '/api/Documentss?json=' + query,headers=self.headers)
                 break
             except: 
                 print(f"{datetime.now()} retry query")
