@@ -8,6 +8,7 @@
 import time
 import cv2
 import os
+from urllib.parse import unquote
 from datetime import datetime
 from utils.AquariusFileHandler import AquariusFileHandler
 from watchdog.observers import Observer
@@ -46,15 +47,15 @@ if os.path.exists(folderToWatch) == False:
 def extract_qr_code_data(file_path):
     from pyzbar.pyzbar import decode
     try:
-
-        img =  cv2.imread(file_path) 
+ 
+        img =  cv2.imread(file_path)
         decoded_objects = decode(img)
         if decoded_objects:            
-
+ 
             # Return the first QR code value as a string
             qr_code_value = decoded_objects[0].data.decode('utf-8')
             if qr_code_value:
-
+ 
                 print(f'{datetime.now()} QR Code Value: {qr_code_value}')
                 return qr_code_value.split("|")
             else:
@@ -70,19 +71,22 @@ def extract_metadata_from_file_name(file_path):
     
     try:
 
+        file_path=unquote(file_path)
+ 
         #get the filename without the extension and without the full path.
         filename = os.path.splitext(os.path.basename(file_path))[0]
-
+ 
         # split the values out of the filename delimited by a underscore.
         values = filename.split("_")
-
+ 
         # lookup the interesting data from the sql database using the first value in the filename.
-        # keydata = values[0]
-        # interesting_data = lookup_sql_data(keydata)
-        # if interesting_data:
-        #     values.append(interesting_data)
-        # else:
-        #     raise ValueError(f"Unable to retrieve data for: {keydata} from the database.")
+        keydata = values[0]
+        if (len(keydata) != 9):
+            interesting_data = lookup_sql_data(keydata)
+            if interesting_data:
+                values[0] = interesting_data
+            else:
+                raise ValueError(f"Unable to retrieve data for: {keydata} from the database.")
         return format_values_based_on_type(values)
         
     except:
@@ -127,7 +131,7 @@ def format_values_based_on_type(indexValues):
                 if field_type == "date":
                     if len(val) == 8 and val.isdigit():
                         try:
-                            dt = datetime.strptime(val, '%m%d%Y')
+                            dt = datetime.strptime(val, '%Y%m%d')
                             indexValues[i] = dt.strftime('%m/%d/%Y')
                         except ValueError:
                             print(f'{datetime.now()} Not a valid date: {val}')
@@ -149,7 +153,10 @@ for root, _, files in os.walk(folderToWatch):
                 file_path = os.path.join(root, filename)
                 
                 handler.ProcessFile(file_path)
-
+#            try:
+#                print(extract_metadata_from_file_name(filename))
+#            except:
+#                print('Error on File')
 
 # Create an observer to watch the folder for file system events
 observer = Observer()
