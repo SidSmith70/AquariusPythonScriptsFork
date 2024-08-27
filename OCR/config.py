@@ -14,6 +14,7 @@ folder_solr_mapping = {
     },
     # Add more folder_solr_mapping entries as needed
 }
+watcher_type="OCRFullTextWatcher"  # Set to "FullTextWatcher" or "OCRWatcher" as needed
 
 process_existing_text_files = False
 process_existing_image_files = False
