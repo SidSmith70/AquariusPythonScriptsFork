@@ -1,3 +1,9 @@
+
+OCR Requires Tesseract ocr installed on the machine and added to the path.
+Full text processing requires solr server.
+
+
+
 Install the Service: Run the following command:
 
 python AquariusFileWatcherService.py install
