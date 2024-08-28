@@ -25,8 +25,9 @@ class UnifiedWatcher:
     def start(self):
 
         # Create a handler instance for each folder to watch
-        if config.watcher_type == "OCRWatcher" or config.watcher_type == "OCRFullTextWatcher":
-            
+        #if config.watcher_type == "OCRWatcher" or config.watcher_type == "OCRFullTextWatcher":
+
+        if config.folders_to_watch:    
             for folder_to_watch in config.folders_to_watch:
 
                 print(f"Watching folder: {folder_to_watch}")
@@ -38,7 +39,8 @@ class UnifiedWatcher:
             
 
         # Create a handler instance for each folder_solr_mapping
-        if config.watcher_type == "FullTextWatcher" or config.watcher_type == "OCRFullTextWatcher":
+        #if config.watcher_type == "FullTextWatcher" or config.watcher_type == "OCRFullTextWatcher":
+        if config.folder_solr_mapping:
             for folder_to_watch, mapping in config.folder_solr_mapping.items():
 
                 print(f"Watching folder: {folder_to_watch}")

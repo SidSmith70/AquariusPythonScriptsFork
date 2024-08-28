@@ -1,15 +1,14 @@
 import time
 from ServiceBase import SMWinservice
-from config import watcher_type
 from OCRWatcher import OCRWatcher
 from FullTextWatcher import FullTextWatcher
 from OCRFullTextWatcher import OCRFullTextWatcher  
 from UnifiedWatcher import UnifiedWatcher
 
-class OCRService(SMWinservice):
-    _svc_name_ = "OCRService"
-    _svc_display_name_ = "OCR Service"
-    _svc_description_ = "Aquarius OCR Service"
+class AquariusFileWatcherService(SMWinservice):
+    _svc_name_ = "AquariusFileWatcherService"
+    _svc_display_name_ = "Aquarius FileWatcher Service"
+    _svc_description_ = "Aquarius FileWatcher Service"
 
     def start(self):
         self.isrunning = True
@@ -25,4 +24,4 @@ class OCRService(SMWinservice):
    
 
 if __name__ == '__main__':
-    OCRService.parse_command_line()
+    AquariusFileWatcherService.parse_command_line()
