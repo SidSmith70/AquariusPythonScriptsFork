@@ -11,13 +11,11 @@ from OCRHandler import ImageFileHandler
 from FullTextHandler import TextFileHandler
 import time
 
-
 #******************* LOAD THE CONFIGURATION FILE ********************************************
 import config
 #************************ CONFIGURATION ***********************************************************
 
-
-class OCRFullTextWatcher:
+class UnifiedWatcher:
     def __init__(self):
         self.running = True
         self.observer = Observer()
@@ -26,24 +24,34 @@ class OCRFullTextWatcher:
 
     def start(self):
 
+        # Create a handler instance for each folder to watch
+        #if config.watcher_type == "OCRWatcher" or config.watcher_type == "OCRFullTextWatcher":
+
+        if config.folders_to_watch:    
+            for folder_to_watch in config.folders_to_watch:
+
+                print(f"Watching folder: {folder_to_watch}")
+            
+                # Create a MyHandler instance to handle the image files.
+                image_handler = ImageFileHandler(folder_to_watch)
+                self.image_handlers.append(image_handler)
+                self.observer.schedule(image_handler, folder_to_watch, recursive=True)
+            
+
         # Create a handler instance for each folder_solr_mapping
-        for folder_to_watch, mapping in config.folder_solr_mapping.items():
+        #if config.watcher_type == "FullTextWatcher" or config.watcher_type == "OCRFullTextWatcher":
+        if config.folder_solr_mapping:
+            for folder_to_watch, mapping in config.folder_solr_mapping.items():
 
-            print(f"Watching folder: {folder_to_watch}")
-
-            solrUrl = mapping["solrUrl"]
-            path_replacement_pairs = mapping["path_replacement_pairs"]
-
-            # Create a MyHandler instance to handle the image files.
-            image_handler = ImageFileHandler(folder_to_watch)
-            self.image_handlers.append(image_handler)
-
-            # Create a TextHandler instance to handle the text files.
-            text_handler = TextFileHandler(folder_to_watch,solrUrl, path_replacement_pairs)
-            self.text_handlers.append(text_handler)
-
-            self.observer.schedule(image_handler, folder_to_watch, recursive=True)
-            self.observer.schedule(text_handler, folder_to_watch, recursive=True)
+                print(f"Watching folder: {folder_to_watch}")
+                                               
+                solrUrl = mapping["solrUrl"]
+                path_replacement_pairs = mapping["path_replacement_pairs"]
+                
+                # Create a TextHandler instance to handle the text files.
+                text_handler = TextFileHandler(folder_to_watch,solrUrl, path_replacement_pairs)
+                self.text_handlers.append(text_handler)
+                self.observer.schedule(text_handler, folder_to_watch, recursive=True)
 
         self.observer.start()
 
@@ -83,7 +91,7 @@ class OCRFullTextWatcher:
 
 
 if __name__ == "__main__":
-    watcher = OCRFullTextWatcher()
+    watcher = UnifiedWatcher()
     watcher.start()
     try:
         watcher.run()
