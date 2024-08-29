@@ -141,22 +141,23 @@ def format_values_based_on_type(indexValues):
                 # Add other type cases as necessary
     return indexValues
 
+def ProcessAll(folderToWatch):
+
+    #to process all files in the folder:
+    for root, _, files in os.walk(folderToWatch):
+            for filename in files:
+                # print the size of the file
+                #if filename.lower().endswith('.tif'):
+                    file_path = os.path.join(root, filename)
+                    
+                    handler.ProcessFile(file_path)
+    #            try:
+    #                print(extract_metadata_from_file_name(filename))
+    #            except:
+    #                print('Error on File')
 
 # Create a MyHandler instance to handle the event
 handler =  AquariusFileHandler(doctypeCode,QRFieldMap,server,username,password,appendExistingDocuments,filter,extract_metadata_from_file_name)
-
-#to process all files in the folder:
-for root, _, files in os.walk(folderToWatch):
-        for filename in files:
-            # print the size of the file
-            #if filename.lower().endswith('.tif'):
-                file_path = os.path.join(root, filename)
-                
-                handler.ProcessFile(file_path)
-#            try:
-#                print(extract_metadata_from_file_name(filename))
-#            except:
-#                print('Error on File')
 
 # Create an observer to watch the folder for file system events
 observer = Observer()
@@ -164,8 +165,23 @@ observer.schedule(handler, folderToWatch, recursive=True)
 observer.start()
 
 try:
+    # Initialize a time counter
+    timecounter = 0
+
     while True:
+        # Process all files in the folder every x minutes
+        if timecounter == 0:
+            ProcessAll(folderToWatch)
+
+        # increment a counter every 5 seconds
+        timecounter += 5
         time.sleep(5)
+
+        # Process all files in the folder every x minutes
+        if timecounter >= 3000000:
+            ProcessAll(folderToWatch)
+            timecounter = 0
+
 except KeyboardInterrupt:
     observer.stop()
 observer.join()
