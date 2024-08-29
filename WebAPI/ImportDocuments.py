@@ -97,7 +97,7 @@ def extract_metadata_from_file_name(file_path):
 def lookup_sql_data(keydata):
 
     # Define the connection string.
-    connection_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=tcp:localhost\sqlexpress;DATABASE=AccountsPayable;UID=aquser;PWD=aquarius'
+    connection_string = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=tcp:localhost\sqlexpress;DATABASE=AccountsPayable;UID=xxxxx;PWD=xxxxx'
 
     # Use the with statement to ensure the connection is closed automatically.
     with pyodbc.connect(connection_string) as conn:
