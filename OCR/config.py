@@ -1,7 +1,9 @@
 folders_to_watch = [
-    'c:\\temp\\'
+    './OCR/WatchedFolder'
     # Add more folders to watch as needed separated by commas
 ]
+
+
 
 folder_solr_mapping = None
 # {
