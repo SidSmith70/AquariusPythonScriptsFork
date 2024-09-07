@@ -1,8 +1,5 @@
 import time
 from ServiceBase import SMWinservice
-from OCRWatcher import OCRWatcher
-from FullTextWatcher import FullTextWatcher
-from OCRFullTextWatcher import OCRFullTextWatcher  
 from UnifiedWatcher import UnifiedWatcher
 
 class AquariusFileWatcherService(SMWinservice):
