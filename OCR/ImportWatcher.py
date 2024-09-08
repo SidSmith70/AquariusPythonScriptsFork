@@ -1,8 +1,7 @@
 
 ########################################################################################################################
 # 
-# Purpose: This script watches for new tif, jpg files and runs tesseract OCR on them.  
-#          It also watches for new text files, and sends them to solr.
+# Purpose: This script watches for new tif, jpg files and processes them 
 #
 ########################################################################################################################
 
