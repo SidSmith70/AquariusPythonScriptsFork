@@ -1,3 +1,8 @@
+############################################################################################################
+# This script is used to import files into Aquarius Imaging using the Aquarius Imaging API.
+# it expects the first image of a multipage tiff file to contain a barcode that is used to identify the document.
+# If the barcode is not found, the file is not imported.
+############################################################################################################
 
 from PIL import Image
 from datetime import datetime
@@ -8,18 +13,16 @@ import tempfile
 import sys
 import os
 
-# Now you can import your script
 import utils.AquariusImaging as AquariusImaging
 
-
 # This class handles importing files.
-class ImportProcessor():
+class ImportProcessorBarcodeDocID():
     
     def __init__(self, config):
 
         self.config = config
 
-                # Authenticate to Aquarius Imaging
+        # Authenticate to Aquarius Imaging
         self.aqApi =  AquariusImaging.AquariusWebAPIWrapper(config['server'])                     
         self.aqApi.authenticate(config['username'], config['password'])
 
@@ -94,3 +97,8 @@ class ImportProcessor():
         except Exception as ex:
             print(f'{datetime.now()} Error: {ex.args[0]}')
 
+
+    # property to expose self.config
+    @property
+    def Config(self):
+        return self.config

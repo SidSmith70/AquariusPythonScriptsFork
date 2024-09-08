@@ -8,7 +8,7 @@
             "name": "Python Debugger: Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "WebAPI.DownloadQueryResults"
+            "module": "OCR.generic_watcher"
         }
     ]
 }
