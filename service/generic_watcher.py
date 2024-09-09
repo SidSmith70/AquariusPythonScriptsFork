@@ -7,11 +7,9 @@
 ########################################################################################################################
 
 from watchdog.observers import Observer  
-from OCR.generic_handler import FileHandler
-from OCR.ocr_processor import OCRProcessor
+from service.generic_handler import FileHandler
 import time
-import os
-import dotenv
+
 
 #******************* LOAD THE CONFIGURATION FILE ********************************************
 from dotenv import load_dotenv
@@ -66,29 +64,6 @@ class GenericWatcher:
         finally:
             self.stop()
 
-if __name__ == "__main__":
-    
-    # create a processor instance to handle the image files, and inject it into the handler.
-    importconfig = {
-        "server": os.environ.get("AQUARIUSAPIURL") ,
-        "username": os.environ.get("USERNAME"),
-        "password": os.environ.get("PASSWORD"),
-        "folder_to_watch": './OCR/WatchedFolder',
-        "process_existing_files": True,
-    }
 
-    processors=[]
-
-    processors.append(OCRProcessor(importconfig))
-
-    watcher = GenericWatcher(processors)
-
-    watcher.start()
-
-    try:
-        watcher.run()
-
-    except KeyboardInterrupt:
-        watcher.stop()
        
 

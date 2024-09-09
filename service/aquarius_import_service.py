@@ -1,10 +1,10 @@
 import time
-from ServiceBase import SMWinservice
+from service_base import SMWinservice
 from generic_watcher import GenericWatcher
 from import_processor_docid import ImportProcessorBarcodeDocID
 import os
 import os
-import dotenv
+
 
 #******************* LOAD THE CONFIGURATION FILE ********************************************
 from dotenv import load_dotenv

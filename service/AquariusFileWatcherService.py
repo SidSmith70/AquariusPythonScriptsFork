@@ -1,6 +1,6 @@
 import time
-from ServiceBase import SMWinservice
-from UnifiedWatcher import UnifiedWatcher
+from service.service_base import SMWinservice
+from service.unified_watcher import UnifiedWatcher
 
 class AquariusFileWatcherService(SMWinservice):
     _svc_name_ = "AquariusFileWatcherService"
