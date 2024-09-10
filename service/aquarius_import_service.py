@@ -2,14 +2,9 @@ import time
 from service_base import SMWinservice
 from generic_watcher import GenericWatcher
 from import_processor_docid import ImportProcessorBarcodeDocID
-import os
+from service.config_import import config_import 
 import os
 
-
-#******************* LOAD THE CONFIGURATION FILE ********************************************
-from dotenv import load_dotenv
-load_dotenv()
-#************************ CONFIGURATION ***********************************************************
 
 class AquariusFileWatcherService(SMWinservice):
     _svc_name_ = "AquariusImportService"
@@ -20,18 +15,17 @@ class AquariusFileWatcherService(SMWinservice):
         
         self.isrunning = True
         
-         # create a processor instance to handle the image files, and inject it into the handler.
-        importconfig = {
-            "server": os.environ.get("AQUARIUSAPIURL") ,
-            "username": os.environ.get("USERNAME"),
-            "password": os.environ.get("PASSWORD"),
-            "folder_to_watch": './OCR/WatchedFolder',
-            "process_existing_files": True,
-        }
-
         processors=[]
 
-        processors.append(ImportProcessorBarcodeDocID(importconfig))
+        for folder, process_existing_files in config_import.folders_to_watch.items():
+        # Create a processor instance and inject the folder and flag into the handler.
+            processors.append(ImportProcessorBarcodeDocID({
+                "folder_to_watch": folder,
+                "process_existing_files": process_existing_files,
+                "server": config_import.aquarius_api_url,
+                "username": config_import.username,
+                "password": config_import.password
+            }))
 
         self.watcher = GenericWatcher(processors)  
 

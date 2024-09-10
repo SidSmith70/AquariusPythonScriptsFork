@@ -1,22 +1,18 @@
-folders_to_watch = [
-    './OCR/WatchedFolder'
+#******************* LOAD SETTINGS FROM .ENV FILE ********************************************
+# THIS IS PRIMARILY USED TO STORE SENSITIVE INFORMATION.
+import os
+from dotenv import load_dotenv
+load_dotenv()
+#******************* LOAD SETTINGS FROM .ENV FILE ********************************************
+
+
+folders_to_watch = {
+    './service/WatchedFolder':True
     # Add more folders to watch as needed separated by commas
-]
+}
 
+aquarius_api_url = os.getenv("AQUARIUSAPIURL")
 
+username = os.getenv("USERNAME")
 
-folder_solr_mapping = None
-# {
-#     "c:\\temp\\": {
-#         "solrUrl": "http://localhost:8983/solr/Aquarius",
-#         "path_replacement_pairs": [
-#             #("old_path_1", "new_path_1")
-#             #("old_path_2", "new_path_2"),
-#             # Add more replacement pairs as needed
-#         ]
-#     },
-#     # Add more folder_solr_mapping entries as needed
-# }
-
-process_existing_text_files = False
-process_existing_image_files = True
+password = os.getenv("PASSWORD")
