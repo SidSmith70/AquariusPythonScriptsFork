@@ -1,10 +1,8 @@
 import time
-from service_base import SMWinservice
-from generic_watcher import GenericWatcher
-from import_processor_docid import ImportProcessorBarcodeDocID
+from service.service_base import SMWinservice
+from service.generic_watcher import GenericWatcher
+from service.process_import_docid import ImportProcessorBarcodeDocID
 from service.config_import import config_import 
-import os
-
 
 class AquariusFileWatcherService(SMWinservice):
     _svc_name_ = "AquariusImportService"
