@@ -12,7 +12,7 @@ from FullTextHandler import TextFileHandler
 import time
 
 #******************* LOAD THE CONFIGURATION FILE ********************************************
-import config
+import service.config_import as config_import
 #************************ CONFIGURATION ***********************************************************
 
 class UnifiedWatcher:
@@ -27,8 +27,8 @@ class UnifiedWatcher:
         # Create a handler instance for each folder to watch
         #if config.watcher_type == "OCRWatcher" or config.watcher_type == "OCRFullTextWatcher":
 
-        if config.folders_to_watch:    
-            for folder_to_watch in config.folders_to_watch:
+        if config_import.folders_to_watch:    
+            for folder_to_watch in config_import.folders_to_watch:
 
                 print(f"Watching folder: {folder_to_watch}")
             
@@ -40,8 +40,8 @@ class UnifiedWatcher:
 
         # Create a handler instance for each folder_solr_mapping
         #if config.watcher_type == "FullTextWatcher" or config.watcher_type == "OCRFullTextWatcher":
-        if config.folder_solr_mapping:
-            for folder_to_watch, mapping in config.folder_solr_mapping.items():
+        if config_import.folder_solr_mapping:
+            for folder_to_watch, mapping in config_import.folder_solr_mapping.items():
 
                 print(f"Watching folder: {folder_to_watch}")
                                                
@@ -56,11 +56,11 @@ class UnifiedWatcher:
         self.observer.start()
 
         # Optionally, process all existing files in the folder tree:
-        if config.process_existing_image_files:
+        if config_import.process_existing_image_files:
             for image_handler in self.image_handlers:
                 image_handler.ProcessALL()
         
-        if config.process_existing_text_files:
+        if config_import.process_existing_text_files:
             for text_handler in self.text_handlers:
                 text_handler.ProcessALL()
 

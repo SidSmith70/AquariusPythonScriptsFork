@@ -9,6 +9,7 @@
 from service.ocr_processor import OCRProcessor
 from service.import_processor_docid import ImportProcessorBarcodeDocID
 from service.generic_watcher import GenericWatcher
+import service.config_ocr as config_ocr
 import os
 
 
@@ -16,17 +17,15 @@ import os
 if __name__ == "__main__":
     
     # create a processor instance to handle the image files, and inject it into the handler.
-    processor_config = {
-        "server": os.environ.get("AQUARIUSAPIURL") ,
-        "username": os.environ.get("USERNAME"),
-        "password": os.environ.get("PASSWORD"),
-        "folder_to_watch": './service/WatchedFolder',
-        "process_existing_files": True,
-    }
-
+    
     processors=[]
 
-    processors.append(ImportProcessorBarcodeDocID(processor_config))
+    for folder, process_existing_files in config_ocr.folders_to_watch.items():
+        # Create a processor instance and inject the folder and flag into the handler.
+            processors.append(OCRProcessor({
+                "folder_to_watch": folder,
+                "process_existing_files": process_existing_files
+            }))
 
     watcher = GenericWatcher(processors)
 
