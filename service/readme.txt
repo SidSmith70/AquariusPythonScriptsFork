@@ -6,25 +6,27 @@ Full text processing requires solr server.
 
 Install the Service: Run the following command:
 
-python AquariusFileWatcherService.py install
+python -m path.to.module.AquariusFileWatcherService install
+
 
 Start the Service: After installing, you can start the service using:
 
-python AquariusFileWatcherService.py start
+python -m path.to.module.AquariusFileWatcherService start
+
 
 
 Stop the Service: If you need to stop the service, use:
 
-python AquariusFileWatcherService.py stop
+python -m path.to.module.AquariusFileWatcherService stop
 
 
 Uninstall the Service: If you want to uninstall the service, use:
 
-python AquariusFileWatcherService.py remove
+python -m path.to.module.AquariusFileWatcherService remove
 
 
 Scripts must be run as modules for relative imports to work properly. So rather than running generic_watcher.py, 
-you'll need to run as a module OCR.generic_watcher. Like so:
+you'll need to run as a module service.generic_watcher. Like so:
  
 {
     "version": "0.2.0",
@@ -33,7 +35,7 @@ you'll need to run as a module OCR.generic_watcher. Like so:
             "name": "Python Debugger: Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "OCR.generic_watcher"
+            "module": "service.generic_watcher"
         }
     ]
 }
