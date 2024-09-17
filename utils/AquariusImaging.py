@@ -13,6 +13,7 @@ from datetime import datetime
 from datetime import timedelta
 import json
 import mimetypes
+import magic
 
 class AquariusWebAPIWrapper:
     
@@ -115,6 +116,24 @@ class AquariusWebAPIWrapper:
 
         return response
 
+    def AddPageContentToDocument(self, docID, page_content, filename):
+        self.__refreshToken()
+        payload = {}
+        
+        # Infer the MIME type from the content
+        mime = magic.Magic(mime=True)
+        mime_type = mime.from_buffer(page_content)
+        
+        # Map MIME type to file extension
+        extension = mimetypes.guess_extension(mime_type)
+        filename = filename + extension
+
+        files = [
+            ('file', (filename, page_content, mime_type))
+        ]
+        response = requests.request("POST", self.server + '/api/DocPages/' + docID, headers=self.headers, data=payload, files=files)
+        
+        return response
 
     def AddPagesToDocument(self, docID, filepaths):
         self.__refreshToken()
