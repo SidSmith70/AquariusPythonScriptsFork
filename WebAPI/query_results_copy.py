@@ -92,11 +92,13 @@ class DocumentCopier:
             doc = docresponse.json()
             doc["doctype"] = self.destination_doctype
             newdocresponse = self.destinationApiWrapper.CreateDocument(doc)
-            newdocID = newdocresponse.json()
-            logger.info(f'Copying document {docID} to {newdocID}')
-            self.process_pages(doc,newdocID)
-            self.docCounter += 1
-            
+            if newdocresponse.status_code == 200:
+                newdocID = newdocresponse.json()
+                logger.info(f'Copying document {docID} to {newdocID}')
+                self.process_pages(doc,newdocID)
+                self.docCounter += 1
+            else:
+                raise Exception(f'Error creating document {docID}. Error code: {newdocresponse.status_code}')
         else:
             raise Exception(f'Error downloading document {docID}. Error code: {docresponse.status_code}')
 
@@ -134,8 +136,8 @@ try:
     destinationApiWrapper = AquariusImaging.AquariusWebAPIWrapper(dest_server)
     destinationApiWrapper.authenticate(dest_username,dest_password)
 
-    doc_copier = DocumentCopier(sourceApiWrapper, destinationApiWrapper,"93G9EJS2")
-    inputFile = "./copytest.csv"
+    doc_copier = DocumentCopier(sourceApiWrapper, destinationApiWrapper,"93EEJG1D")
+    inputFile = "./Migrationtest.csv"
     doc_copier.process_documents(inputFile)
 
 
