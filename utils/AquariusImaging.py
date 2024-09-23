@@ -126,6 +126,9 @@ class AquariusWebAPIWrapper:
         
         # Map MIME type to file extension
         extension = mimetypes.guess_extension(mime_type)
+        if extension == '.tiff':
+            extension = '.tif'
+            
         filename = filename + extension
 
         files = [
