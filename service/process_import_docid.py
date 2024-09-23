@@ -37,22 +37,42 @@ class ImportProcessorBarcodeDocID():
             if file_path.lower().endswith('.tif') or file_path.lower().endswith('.jpg'):
                 print(f"{datetime.now()} Processing {file_path}")
                 
-                img = Image.open(file_path)
-                img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                
-                # Read the barcode from the image
-                barcodes = decode(img_cv)
-                doc_id = None
-                for barcode in barcodes:
-                    barcode_data = barcode.data.decode('utf-8')
-                    barcode_type = barcode.type
-                    print(f"Found {barcode_type} barcode: {barcode_data}")
-                    if len(barcode_data) == 8:
-                        doc_id = barcode_data
-                        
-                        break
-                
-                doc_id = 'W2SQXH6W'
+                with Image.open(file_path) as img:
+                    #img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                    # Check if the image is in black and white (1-bit per pixel)
+                    if img.mode == '1':
+                        print("Detected black and white TIFF, converting to grayscale")
+                        # Convert to grayscale mode
+                        img = img.convert('L')
+                    
+                    # Convert the image to a numpy array
+                    img_np = np.array(img)
+                    
+                    # Check for valid image data
+                    if img_np is None or img_np.size == 0:
+                        print("Image data is empty after conversion to numpy array")
+                        return
+                    
+                    # If the image is already grayscale, no need to convert color
+                    if img_np.ndim == 2:  # If it's already a single channel
+                        img_cv = img_np  # No color conversion needed for grayscale
+                    else:
+                        # Convert from RGB to BGR for OpenCV compatibility
+                        img_cv = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+                    
+                    # Read the barcode from the image
+                    barcodes = decode(img_cv)
+                    doc_id = None
+                    for barcode in barcodes:
+                        barcode_data = barcode.data.decode('utf-8')
+                        barcode_type = barcode.type
+                        print(f"Found {barcode_type} barcode: {barcode_data}")
+                        if len(barcode_data) == 8:
+                            doc_id = barcode_data
+                            
+                            break
+                    
+                #doc_id = 'W2SQXH6W'
                 if doc_id:
                     if (file_path.lower().endswith('.tif')):                    
                         temp_files = []
