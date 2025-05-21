@@ -79,6 +79,10 @@ class ImportProcessorPDF():
                         if response.status_code != 200:
                             raise Exception(f"Error uploading PDF pages: {response.status_code} {response.text}")
 
+                        #if we made it here, the upload was successful, so we can now delete the incoming file
+                        os.remove(file_path)
+                        print(f"{datetime.now()} → Deleted {file_path} after successful upload")
+                
                 # TemporaryDirectory and all files inside are auto-deleted here
                         
                     
