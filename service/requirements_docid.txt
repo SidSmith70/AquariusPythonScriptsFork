@@ -1,0 +1,5 @@
+Pillow==9.0.0
+pyzbar==0.1.9
+opencv-python==4.6.0.66; platform_system=="Windows"
+numpy==1.21.3
+python-dotenv==1.0.0
