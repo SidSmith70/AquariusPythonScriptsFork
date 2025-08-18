@@ -1,6 +1,24 @@
 
-OCR Requires Tesseract ocr installed on the machine and added to the path.
-Full text processing requires solr server.
+OCR Requires the Tesseract OCR engine installed on the machine and added to the
+PATH. On Windows you can download it from https://github.com/UB-Mannheim/tesse
+ract/wiki.
+Full text processing requires a Solr server.
+
+Windows installations may also require the Microsoft Visual C++ Redistributable
+for some packages (e.g., opencv-python). After installing dependencies, run
+`pywin32_postinstall.py -install` from the Python Scripts directory if prompted.
+
+Each processor has its own requirements file. Install only what you need using
+`pip install -r <file>`:
+
+```
+requirements_base.txt      # Generic watcher/service support
+requirements_pdf.txt       # PDF import processor
+requirements_csv.txt       # CSV import processor
+requirements_docid.txt     # Barcode DocID processor
+requirements_ocr.txt       # OCR processor
+requirements_fulltext.txt  # Full text indexing
+```
 
 
 
