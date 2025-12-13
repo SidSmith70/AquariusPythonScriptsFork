@@ -3,7 +3,7 @@
 This project uses `.env` files for setting environment variables during development. Follow these steps to configure your `.env` file:
 
 1. Copy `.env.example` to `.env` in the project root.
-2. Update the `.env` file with your settings for `USERNAME` and `PASSWORD`.
+2. Update the `.env` file with your settings for `AQUARIUS_USERNAME` and `PASSWORD`.
 
 Never commit the `.env` file to the repository.
 
