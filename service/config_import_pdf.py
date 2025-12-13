@@ -7,7 +7,7 @@ load_dotenv()
 
 aquarius_api_url = os.getenv("AQUARIUSAPIURL")
 
-username = os.getenv("USERNAME")
+username = os.getenv("AQUARIUS_USERNAME")
 
 password = os.getenv("PASSWORD")
 
