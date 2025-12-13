@@ -18,7 +18,7 @@ import pyodbc
 
 #******************* CONFIGURATION  ********************************************
 load_dotenv()
-username = os.environ.get("USERNAME")
+username = os.environ.get("AQUARIUS_USERNAME")
 password = os.environ.get("PASSWORD")
 doctypeCode = os.environ.get("DOCTYPEID")
 server = os.environ.get("AQUARIUSAPIURL")   

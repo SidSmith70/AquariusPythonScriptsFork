@@ -19,7 +19,7 @@ import os
 #************************ CONFIGURATION ***********************************************************
 from dotenv import load_dotenv
 load_dotenv()
-username = os.environ.get("USERNAME")
+username = os.environ.get("AQUARIUS_USERNAME")
 password = os.environ.get("PASSWORD")
 server = os.environ.get("AQUARIUSAPIURL") 
 docType = os.environ.get("DOCTYPEID")

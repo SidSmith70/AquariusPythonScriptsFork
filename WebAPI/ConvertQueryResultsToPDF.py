@@ -33,16 +33,28 @@ class PDFWriter:
         self.pageList=[]
         self.ID = ID
         print(ID)
-        
+
     def WritePDF(self):
         if (len(self.pageList) > 0):
-            print('Creating pdf: ' + self.filepath)
-            os.makedirs(os.path.dirname(self.filepath),exist_ok=True)
-            with open(self.filepath,"wb") as f:
+            output_path = self._get_unique_filepath()
+            print('Creating pdf: ' + output_path)
+            os.makedirs(os.path.dirname(output_path),exist_ok=True)
+            with open(output_path,"wb") as f:
                 f.write(img2pdf.convert(self.pageList))
 
     def AddPage(self,filepath):
         self.pageList.append(filepath)
+
+    def _get_unique_filepath(self):
+        base, extension = os.path.splitext(self.filepath)
+        candidate = self.filepath
+        counter = 1
+
+        while os.path.exists(candidate):
+            candidate = f"{base}({counter}){extension}"
+            counter += 1
+
+        return candidate
 
 #start main function
 outputFolder = os.path.dirname(inputFile) + '/Output'

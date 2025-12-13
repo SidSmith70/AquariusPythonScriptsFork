@@ -8,7 +8,12 @@
             "name": "Python Debugger: Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "WebAPI.query_results_copy
+            "module": "WebAPI.DownloadQueryResults.py"
+        }, {
+            "name": "Python Debugger: TESTER module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "service.tester"
         }
     ]
 }

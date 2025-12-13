@@ -14,7 +14,7 @@ import json
 from dotenv import load_dotenv
 import os
 load_dotenv()
-username = os.environ.get("USERNAME")
+username = os.environ.get("AQUARIUS_USERNAME")
 password = os.environ.get("PASSWORD")
 server = os.environ.get("AQUARIUSAPIURL") 
 doctypeCode = os.environ.get("DOCTYPEID")

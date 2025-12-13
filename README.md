@@ -3,7 +3,7 @@
 This project uses `.env` files for setting environment variables during development. Follow these steps to configure your `.env` file:
 
 1. Copy `.env.example` to `.env` in the project root.
-2. Update the `.env` file with your settings for `USERNAME` and `PASSWORD`.
+2. Update the `.env` file with your settings for `AQUARIUS_USERNAME` and `PASSWORD`.
 
 Never commit the `.env` file to the repository.
 
@@ -62,6 +62,23 @@ A collection of Python scripts to interact with Aquarius DMS via the Aquarius We
     ```bash
     pip install -r requirements.txt
     ```
+
+    Each processor under `service/` also provides its own minimal requirements
+    file if you only need a subset of the features.  For example:
+
+    ```bash
+    pip install -r service/requirements_pdf.txt      # PDF importer only
+    pip install -r service/requirements_csv.txt      # CSV importer only
+    pip install -r service/requirements_ocr.txt      # OCR processing only
+    pip install -r service/requirements_docid.txt    # Barcode DocID importer
+    pip install -r service/requirements_fulltext.txt # Full text indexing
+    ```
+
+    On Windows machines install the [Tesseract OCR engine](https://github.com/UB-Mannheim/tesseract/wiki)
+    if you plan to use OCR. Some packages such as `opencv-python` may require the
+    Microsoft Visual C++ Redistributable. After installing the Python packages
+    you may need to run `pywin32_postinstall.py -install` from the `Scripts`
+    folder of your virtual environment.
 
 4. **Environment Variables**:
 

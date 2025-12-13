@@ -14,7 +14,7 @@ import sys
 #*********************************    initialize variables    ***************************************************************
 from dotenv import load_dotenv
 load_dotenv()
-musername = os.environ.get("USERNAME")
+musername = os.environ.get("AQUARIUS_USERNAME")
 mpassword = os.environ.get("PASSWORD")
 mserver = os.environ.get("AQUARIUSAPIURL")  
 
