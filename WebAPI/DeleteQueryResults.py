@@ -17,6 +17,14 @@ def add_repo_root_to_path():
 
 add_repo_root_to_path()
 
+
+def get_input_file(default_name: str = "GridViewExport.csv") -> str:
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+
+    script_dir = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    return str(script_dir / default_name)
+
 import utils.AquariusImaging as AquariusImaging
 
 #************************ CONFIGURATION ***********************************************************
@@ -24,17 +32,13 @@ from dotenv import load_dotenv
 load_dotenv()
 username = os.environ.get("AQUARIUS_USERNAME")
 password = os.environ.get("PASSWORD")
-server = os.environ.get("AQUARIUSAPIURL")  
+server = os.environ.get("AQUARIUSAPIURL")
 
-inputFile = "./GridViewExport.csv"
+inputFile = get_input_file()
 multipage = False
 
 #************************ CONFIGURATION ***********************************************************
 
-
-#if a file was dropped on this script, use it as the input file
-if (len(sys.argv) > 1):
-    inputFile = sys.argv[1] 
 
 #delete the documents
 webApi=AquariusImaging.AquariusWebAPIWrapper(server)
