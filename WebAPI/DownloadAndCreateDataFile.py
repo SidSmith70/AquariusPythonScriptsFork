@@ -7,10 +7,20 @@
 ########################################################################################################################
 
 import os
-import utils.AquariusImaging as AquariusImaging
-import utils.AquariusDownloader as AquariusDownloader
+from pathlib import Path
 from datetime import datetime
 import sys
+
+def add_repo_root_to_path():
+    script_path = Path(__file__).resolve() if "__file__" in globals() else Path.cwd()
+    root_dir = script_path.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+add_repo_root_to_path()
+
+import utils.AquariusImaging as AquariusImaging
+import utils.AquariusDownloader as AquariusDownloader
 #*********************************    initialize variables    ***************************************************************
 from dotenv import load_dotenv
 load_dotenv()

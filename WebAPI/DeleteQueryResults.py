@@ -5,9 +5,19 @@
 #
 ########################################################################################################################
 
-import utils.AquariusImaging as AquariusImaging
+from pathlib import Path
 import sys
 import os
+
+def add_repo_root_to_path():
+    script_path = Path(__file__).resolve() if "__file__" in globals() else Path.cwd()
+    root_dir = script_path.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+add_repo_root_to_path()
+
+import utils.AquariusImaging as AquariusImaging
 
 #************************ CONFIGURATION ***********************************************************
 from dotenv import load_dotenv
