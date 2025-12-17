@@ -1,6 +1,17 @@
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+import sys
+
+def add_repo_root_to_path():
+    script_path = Path(__file__).resolve() if "__file__" in globals() else Path.cwd()
+    root_dir = script_path.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+add_repo_root_to_path()
+
 import utils.PDFSplitter as PDFSplitter
 ########################################################################################################################
 # 
@@ -10,7 +21,6 @@ import utils.PDFSplitter as PDFSplitter
 ########################################################################################################################
 
 #******************* CONFIGURATION  ********************************************
-from dotenv import load_dotenv
 load_dotenv()
 username = os.environ.get("AQUARIUS_USERNAME")
 password = os.environ.get("PASSWORD")
@@ -27,8 +37,6 @@ FieldMap = {
 
 #************************ CONFIGURATION ***********************************************************
 
-import os
-import sys
 import utils.AquariusImaging as AquariusImaging
 from datetime import datetime
 

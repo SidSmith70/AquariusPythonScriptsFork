@@ -5,12 +5,32 @@
 #
 ########################################################################################################################
 
+from pathlib import Path
 import os
 import pandas as pd
 import img2pdf
+import sys
+
+
+def add_repo_root_to_path():
+    script_path = Path(__file__).resolve() if "__file__" in globals() else Path.cwd()
+    root_dir = script_path.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+
+add_repo_root_to_path()
+
+
+def get_input_file(default_name: str = "GridViewExport.csv") -> str:
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+
+    script_dir = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    return str(script_dir / default_name)
 
 #initialize variable(s)
-inputFile = "./GridViewExport.csv"
+inputFile = get_input_file()
 
 def GenerateFileName(row):
     
