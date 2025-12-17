@@ -7,10 +7,28 @@
 ########################################################################################################################
 
 import os
-import utils.AquariusImaging as AquariusImaging
-import utils.AquariusDownloader as AquariusDownloader
+from pathlib import Path
 from datetime import datetime
 import sys
+
+def add_repo_root_to_path():
+    script_path = Path(__file__).resolve() if "__file__" in globals() else Path.cwd()
+    root_dir = script_path.parent.parent
+    if str(root_dir) not in sys.path:
+        sys.path.insert(0, str(root_dir))
+
+add_repo_root_to_path()
+
+
+def get_input_file(default_name: str = "GridViewExport.csv") -> str:
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+
+    script_dir = Path(__file__).resolve().parent if "__file__" in globals() else Path.cwd()
+    return str(script_dir / default_name)
+
+import utils.AquariusImaging as AquariusImaging
+import utils.AquariusDownloader as AquariusDownloader
 #*********************************    initialize variables    ***************************************************************
 from dotenv import load_dotenv
 load_dotenv()
@@ -19,15 +37,9 @@ mpassword = os.environ.get("PASSWORD")
 mserver = os.environ.get("AQUARIUSAPIURL")  
 
 fields = ["Grantor","Grantee","Book","Page_x","Date "]
-inputFile = "GridViewExport.csv"
+inputFile = get_input_file()
 
 #************************ CONFIGURATION ***********************************************************
-
-
-#if a file was dropped on this script, use it as the input file
-if (len(sys.argv) > 1):
-    inputFile = sys.argv[1] 
-
 
 #Download the images as multipage tiffs
 #create a unique identifier
