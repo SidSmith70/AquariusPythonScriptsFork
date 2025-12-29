@@ -24,6 +24,7 @@ class CrossRefDataWriter:
         self.imageXRefFilePath = os.path.splitext(inputfile)[0] + 'ImageXRef.csv' # outputPath + '/ImageXref.csv'
         self._last_doc_id = ''
         self._last_page = 0
+        self.errorLogFilePath = os.path.splitext(inputfile)[0] + 'ErrorLog.csv'
 
         #create unique folder
         self.outputPath += '\\' + uniqueIdentifier + '\\'
@@ -32,6 +33,9 @@ class CrossRefDataWriter:
     
         #create image cross reference data file.
         self.imageXRefFile = open(self.imageXRefFilePath,'ab')
+
+        #create error log data file.
+        self.errorLogFile = open(self.errorLogFilePath, 'ab')
     
         # write the column headers only if the file is empty
         if os.path.getsize(self.imageXRefFilePath) == 0:
@@ -45,6 +49,10 @@ class CrossRefDataWriter:
                     last_line = lines[-1]
                     self._last_doc_id = last_line.split('\t')[0]
                     self._last_page = int(last_line.split('\t')[1])
+
+        # write the column headers for error log only if the file is empty
+        if os.path.getsize(self.errorLogFilePath) == 0:
+            self.errorLogFile.write(bytes('timestamp' + '\t' + 'doc_id' + '\t' + 'page' + '\t' + 'error' + '\n','UTF-8'))
     @property
     def last_doc_id(self):        
         return self._last_doc_id
@@ -59,6 +67,12 @@ class CrossRefDataWriter:
 
     def Close(self):
         self.imageXRefFile.close()
+        self.errorLogFile.close()
+
+    def LogError(self, docID, page, errorMessage):
+        timestamp = datetime.now().isoformat()
+        self.errorLogFile.write(bytes(f'{timestamp}\t{docID}\t{page}\t{errorMessage}\n','UTF-8'))
+        self.errorLogFile.flush()
 
 
 def GetMergedData(inputFile):
@@ -130,8 +144,11 @@ class QueryResultsDownloader:
             docID = resultLine.split('\t')[0]
             #check that we are caught up to the last doc_id in the cross reference file.
             if docID != 'doc_id':
-                                                
-                self.process_document(docID, XrefDataWriter, multiPage, type)
+                try:
+                    self.process_document(docID, XrefDataWriter, multiPage, type)
+                except Exception as error:
+                    XrefDataWriter.LogError(docID, '', str(error))
+                    print(f'{datetime.now()} Error processing document {docID}: {error}')
 
         print(f'{datetime.now()} Process complete! {self.docCounter} documents downloaded.')
 
@@ -165,7 +182,11 @@ class QueryResultsDownloader:
         self.page_files = []
 
         for pageCounter in range(starting_page, doc["pageCount"] + 1):
-            self.process_page(docID, pageCounter, XrefDataWriter,  type)
+            try:
+                self.process_page(docID, pageCounter, XrefDataWriter,  type)
+            except Exception as error:
+                XrefDataWriter.LogError(docID, pageCounter, str(error))
+                print(f'{datetime.now()} Error processing document {docID} page {pageCounter}: {error}')
         
         if multiPage:
             if(len(self.page_files) == 1):
@@ -199,6 +220,8 @@ class QueryResultsDownloader:
             
         elif response.status_code == 401:
             raise Exception(f'Unauthorized to download document {docID}.')
+        else:
+            raise Exception(f'Error downloading document {docID} page {pageCounter}. Error code: {response.status_code}')
 
     def save_page(self, response, docID, pageCounter, XrefDataWriter):
         fileName = self.get_filename(response, docID, pageCounter, XrefDataWriter)
